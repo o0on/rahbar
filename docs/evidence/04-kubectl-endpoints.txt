@@ -1,0 +1,16 @@
+# Evidence 4: kubectl get endpoints
+
+Namespace: rahbar
+
+Command:
+kubectl get endpoints -n rahbar
+
+Output:
+NAME      ENDPOINTS                                                        AGE
+api       10.244.0.18:8000,10.244.0.19:8000,10.244.0.20:8000              14m
+chroma    10.244.0.15:8000                                                 18m
+redis     10.244.0.16:6379                                                 18m
+ui        10.244.0.17:8080                                                 14m
+
+Observation:
+The Service `api` selector automatically discovered all 3 running API replica Pod IPs without manual reconfiguration.

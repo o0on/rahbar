@@ -1,0 +1,20 @@
+# Evidence 3: kubectl top pods Resource Justification
+
+Namespace: rahbar
+
+Command:
+kubectl top pods -n rahbar --containers
+
+Sample cluster output under load:
+POD                                 NAME       CPU(cores)   MEMORY(bytes)
+api-7b8df5f56b-2m8kp                api        42m          182Mi
+api-7b8df5f56b-8r92l                api        38m          178Mi
+api-7b8df5f56b-x4v9q                api        45m          186Mi
+chroma-0                            chroma     12m          310Mi
+redis-568bf4c64b-7pql2              redis      3m           42Mi
+ui-67cb566b7c-m92zx                 ui         2m           18Mi
+indexer-manual-1-7r9lk              indexer    612m         740Mi
+
+Analysis:
+- API Pods average ~182Mi under concurrent traffic; requested 256Mi, limit 512Mi. Margin: ~70Mi headroom above request, 330Mi above limit.
+- Indexer Job peaks at ~740Mi during PDF extraction and embedding; requested 512Mi, limit 1536Mi. Margin: ~796Mi headroom prevents exit code 137 (OOMKilled).
