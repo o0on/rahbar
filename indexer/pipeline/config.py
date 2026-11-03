@@ -16,6 +16,8 @@ class IndexerSettings:
     chunk_size: int
     chunk_overlap: int
     ollama_url: str
+    redis_host: str         # the semantic cache the Job invalidates after indexing
+    redis_port: int
 
 
 def get_settings() -> IndexerSettings:
@@ -28,4 +30,6 @@ def get_settings() -> IndexerSettings:
         chunk_size=int(os.environ.get("CHUNK_SIZE", 400)),
         chunk_overlap=int(os.environ.get("CHUNK_OVERLAP", 50)),
         ollama_url=os.environ.get("OLLAMA_URL", "http://host.minikube.internal:11434"),
+        redis_host=os.environ.get("REDIS_HOST", "redis"),
+        redis_port=int(os.environ.get("REDIS_PORT", 6379)),
     )
