@@ -32,9 +32,23 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.settings = settings
     app.state.retriever = get_retriever(settings)
     app.state.provider = get_provider(settings)
-    # STARTER-TODO(4.4): compare the collection's embedding-model metadata with
-    # settings.embed_model here, and make /readyz fail on a mismatch.
-    # This process only reads the index. The indexer Job writes it.
+    # Section 4.4: Enforce embedding-model pin guardrail.
+    # The API only reads the index. The indexer Job writes it.
+    if settings.retriever == "chroma":
+        try:
+            import chromadb
+            client = chromadb.HttpClient(host=settings.chroma_host, port=settings.chroma_port)
+            col = client.get_collection(name=settings.collection)
+            meta = col.metadata or {}
+            indexed_model = meta.get("embed_model") or meta.get("embedding_model")
+            if indexed_model and indexed_model != settings.embed_model:
+                log.error(
+                    "EMBED_MODEL mismatch on startup: collection was built with '%s' "
+                    "which does not match runtime pin '%s'. Pod will remain not ready.",
+                    indexed_model, settings.embed_model
+                )
+        except Exception as exc:
+            log.warning("Could not verify Chroma collection on startup (will recheck in readyz): %s", exc)
     log.info(
         "api started",
         extra={"retriever": settings.retriever, "llm_provider": settings.llm_provider,
