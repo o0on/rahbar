@@ -1,0 +1,97 @@
+# BONUS: In-cluster Ollama Deployment and Service
+# Enables running local LLMs directly inside the Kubernetes cluster with persistent model weights.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-models
+  namespace: rahbar
+  labels:
+    app.kubernetes.io/name: ollama
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 15Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+  namespace: rahbar
+  labels:
+    app.kubernetes.io/name: ollama
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: ollama
+  ports:
+    - name: http
+      port: 11434
+      targetPort: 11434
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: rahbar
+  labels:
+    app.kubernetes.io/name: ollama
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ollama
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ollama
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: ollama
+          image: ollama/ollama:0.5.7
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: OLLAMA_HOST
+              value: "0.0.0.0:11434"
+          ports:
+            - containerPort: 11434
+              name: http
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 4Gi
+            limits:
+              cpu: 4000m
+              memory: 8Gi
+          # Bonus requirement: failureThreshold 30 so liveness won't kill container while model weights load
+          startupProbe:
+            httpGet:
+              path: /api/version
+              port: 11434
+            failureThreshold: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/version
+              port: 11434
+            failureThreshold: 3
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /api/version
+              port: 11434
+            failureThreshold: 3
+            periodSeconds: 10
+          volumeMounts:
+            - name: models
+              mountPath: /root/.ollama
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: ollama-models
