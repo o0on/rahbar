@@ -23,3 +23,7 @@ venv/
 # Local scratch
 *.log
 .DS_Store
+
+# Coverage data from local runs
+.coverage
+htmlcov/
