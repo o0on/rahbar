@@ -64,3 +64,7 @@ class AskResponse(BaseModel):
     confidence: Literal["high", "medium", "low"]
     retrieved: list[RetrievedRef]
     provider: str
+    # True when this exact answer came from the semantic cache (section 3.3);
+    # the UI also reads the X-Cache header. Defaulted so the contract the
+    # starter kit's tests pin down still constructs.
+    cached: bool = False

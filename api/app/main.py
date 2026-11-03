@@ -21,6 +21,7 @@ from .logjson import configure_logging, request_id_var
 from .providers.llm import get_provider
 from .retrieval import get_retriever
 from .routes import ask, health, metrics
+from .services.cache import SemanticCache
 
 log = logging.getLogger("rahbar.api")
 
@@ -32,6 +33,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.settings = settings
     app.state.retriever = get_retriever(settings)
     app.state.provider = get_provider(settings)
+    # The semantic cache only exists against the real index: with the stub
+    # retriever there is nothing to embed a query with and no Redis to talk to.
+    app.state.cache = SemanticCache(settings) if settings.retriever == "chroma" else None
     # Section 4.4: Enforce embedding-model pin guardrail.
     # The API only reads the index. The indexer Job writes it.
     if settings.retriever == "chroma":

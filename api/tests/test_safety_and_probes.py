@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
-from app.schemas import Answer, Citation
+from app.schemas import Answer
 
 
 @pytest.fixture()
