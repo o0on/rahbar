@@ -1,0 +1,95 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install -r api/requirements.txt -r api/requirements-dev.txt
+          pip install -r indexer/requirements.txt -r indexer/requirements-dev.txt
+
+      - name: Run test suite
+        run: |
+          pytest api/tests indexer/tests --cov=api/app --cov=indexer/pipeline --cov-fail-under=60
+
+  build-push:
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: actions/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v5
+        with:
+          context: api
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/rahbar-api:${{ github.sha }}
+
+      - name: Build and push Indexer image
+        uses: docker/build-push-action@v5
+        with:
+          context: indexer
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/rahbar-indexer:${{ github.sha }}
+
+      - name: Build and push UI image
+        uses: docker/build-push-action@v5
+        with:
+          context: ui
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/rahbar-ui:${{ github.sha }}
+
+  deploy:
+    needs: [build-push]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Kind cluster
+        uses: helm/kind-action@v1.10.0
+        with:
+          cluster_name: kind-rahbar-cd
+
+      - name: Deploy Kubernetes Manifests
+        run: |
+          kubectl apply -k k8s/overlays/prod
+          kubectl create secret generic rahbar-secret -n rahbar --from-literal=LLM_API_KEY="${{ secrets.LLM_API_KEY }}" --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Wait for API rollout status
+        run: |
+          kubectl rollout status deployment/api -n rahbar --timeout=180s || true
+          kubectl rollout status deployment/ui -n rahbar --timeout=180s || true
+
+      - name: Smoke test via Ingress
+        run: |
+          kubectl get pods -n rahbar
+          kubectl get services -n rahbar
