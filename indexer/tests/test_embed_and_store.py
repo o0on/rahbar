@@ -143,8 +143,11 @@ class FakeCollection:
         self.ids = [i for i in self.ids if i not in set(ids)]
 
     def modify(self, metadata: dict) -> None:
+        if "hnsw:space" in metadata:      # real Chroma rejects this (ValueError)
+            raise ValueError("Changing the distance function of a collection "
+                             "once it is created is not supported currently.")
         self.modified = metadata
-        self.metadata = metadata
+        self.metadata = {**(self.metadata or {}), **metadata}
 
     def count(self) -> int:
         return len(self.ids)
@@ -189,7 +192,8 @@ def test_store_upserts_prunes_stale_ids_and_records_the_pin(
     monkeypatch: pytest.MonkeyPatch, invalidated: list[tuple[str, str]],
 ) -> None:
     existing = FakeCollection(
-        metadata={"embed_model": "nomic-embed-text", "dimension": 2},
+        metadata={"hnsw:space": "cosine", "embed_model": "nomic-embed-text",
+                  "dimension": 2},
         ids=["handbook-2026-p001-0000", "old-run-chunk-that-is-gone"],
     )
     client = FakeClient(collection=existing)
@@ -202,10 +206,11 @@ def test_store_upserts_prunes_stale_ids_and_records_the_pin(
     assert existing.deleted == ["old-run-chunk-that-is-gone"]  # prune only the stale id
     assert count == 3
     assert existing.modified is not None
+    assert "hnsw:space" not in existing.modified          # Chroma forbids modifying it
     assert existing.modified["embed_model"] == "nomic-embed-text"   # section 4.4 pin
     assert existing.modified["dimension"] == 2
     assert existing.modified["chunks"] == 3
-    assert existing.metadata["hnsw:space"] == "cosine"
+    assert existing.metadata["hnsw:space"] == "cosine"   # create-time setting kept
     assert invalidated and invalidated[0][1] == existing.modified["generation"]
 
 

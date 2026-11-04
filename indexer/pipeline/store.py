@@ -101,8 +101,10 @@ def store(chunks: list[Chunk], vectors: list[list[float]], settings: IndexerSett
 
     generation = uuid.uuid4().hex
     meta = dict(collection.metadata or {})
-    meta.update({"hnsw:space": meta.get("hnsw:space", "cosine"),
-                 "embed_model": settings.embed_model,
+    # Chroma refuses modify() requests that mention hnsw:space at all, even
+    # with the same value, so the distance function stays create-time only.
+    meta.pop("hnsw:space", None)
+    meta.update({"embed_model": settings.embed_model,
                  "dimension": dimension,
                  "generation": generation,
                  "indexed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
