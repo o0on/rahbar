@@ -12,7 +12,8 @@ from app.config import Settings
 from app.schemas import Answer, AskResponse, Citation, Passage
 from app.services.cache import (CACHE_GENERATION_KEY, ENTRIES_KEY,
                                 INDEX_GENERATION_KEY, SemanticCache, cosine,
-                                is_followup, should_cache)
+                                is_followup, is_version_question,
+                                should_cache)
 from app.services.grounding import (ABSTAIN_ANSWER, abstention, below_floor,
                                     citation_is_grounded, ground,
                                     section_matches)
@@ -116,6 +117,20 @@ def test_never_cache_a_follow_up_an_abstention_or_a_fallback() -> None:
     refused = answer(answered_from_context=False, citations=[])
     assert should_cache("Q?", refused, False) is False                         # abstention
     assert should_cache("Q?", answer(citations=[]), False) is False            # no citation
+    old_rules = "Under the August 2023 rules, until when could I withdraw?"    # version
+    assert should_cache(old_rules, grounded, False) is False
+
+
+@pytest.mark.parametrize("question,expected", [
+    ("Until when can a student withdraw from a course?", False),   # current rules
+    ("What does the university charge per credit hour for 2026-27?", False),
+    ("Under the August 2023 academic rules, until when could a "
+     "student withdraw from a course?", True),
+    ("What does the superseded August 2023 rules document say?", True),
+    ("How did the old rules handle academic warning?", True),
+])
+def test_version_question_detection(question: str, expected: bool) -> None:
+    assert is_version_question(question) is expected
 
 
 def test_cosine_similarity_basics() -> None:

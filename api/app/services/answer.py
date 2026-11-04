@@ -1,7 +1,7 @@
 """Turns a question into an AskResponse. The query pipeline of section 3.2:
 
 1. receive and validate the question (the route's Pydantic model does it),
-2. cache check - skipped for follow-ups,
+2. cache check - skipped for follow-ups and version questions,
 3. embed the question with the pinned model,
 4. retrieve top-k with the superseded filter,
 5. augment (the provider builds instructions -> evidence -> question),
@@ -28,7 +28,7 @@ from ..retrieval.base import Retriever
 from ..routes.metrics import (ABSTENTIONS, CACHE, CITATIONS_PRUNED, FALLBACKS,
                               GENERATION, RETRIEVAL)
 from ..schemas import AskResponse, Passage, RetrievedRef
-from .cache import SemanticCache, is_followup, should_cache
+from .cache import SemanticCache, is_followup, is_version_question, should_cache
 from .grounding import abstention, below_floor, ground
 
 log = logging.getLogger("rahbar.answer")
@@ -50,13 +50,17 @@ def answer_question(
     cache: SemanticCache | None = None,
 ) -> AskResponse:
     request_id = request_id_var.get()
-    followup = is_followup(question)
+    # Follow-ups only make sense in their conversation; version questions
+    # would be served (or would serve) a cached twin about the OTHER policy
+    # version - measured at 0.9442 cosine, above the 0.88 threshold (3.3).
+    # Both bypass the cache in both directions.
+    bypassed = is_followup(question) or is_version_question(question)
 
-    # 2. Cache check. Follow-ups are never looked up and never stored: they
-    # only make sense in their conversation (section 3.3).
+    # 2. Cache check. Follow-ups and version questions are never looked up
+    # and never stored (section 3.3).
     vector: list[float] | None = None
     if cache is not None:
-        if followup:
+        if bypassed:
             CACHE.labels(result="bypass").inc()
         else:
             embed = getattr(retriever, "embed", None)
@@ -163,6 +167,6 @@ def answer_question(
         "fallback": fallback_used,
         "retrieval_ms": round(retrieval_seconds * 1000, 1),
         "generation_ms": round(generation_seconds * 1000, 1),
-        "cache": "bypass" if followup else "miss",
+        "cache": "bypass" if bypassed else "miss",
     })
     return response

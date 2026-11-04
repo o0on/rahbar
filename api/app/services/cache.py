@@ -6,6 +6,9 @@ from the pinned model, so the vectors are comparable.
 
 Never cached, because a cached mistake is served to everyone:
 * follow-up questions (they only make sense in their conversation),
+* questions about an older version of a policy (the current version's answer
+  would be served for the old one - measured at 0.9442 cosine, inside the
+  paraphrase range, so no threshold can separate them; see is_version_question),
 * abstentions and out-of-scope answers (answered_from_context: false),
 * anything with no citation (nothing grounded to reuse),
 * anything that failed validation and came back from the fallback.
@@ -30,6 +33,7 @@ from typing import Any
 import httpx
 
 from ..config import Settings
+from ..retrieval.chroma import _OLDER_VERSION
 from ..schemas import AskResponse, Answer
 
 log = logging.getLogger("rahbar.cache")
@@ -55,9 +59,26 @@ def is_followup(question: str) -> bool:
     return bool(_FOLLOWUP.match(question.strip()))
 
 
+def is_version_question(question: str) -> bool:
+    """True when the question explicitly asks about an older version of a policy.
+
+    Such questions bypass the cache in both directions: the current rules'
+    cached answer would be served for the old-rules question and vice versa.
+    The wording of golden q09 (current rules) and q10 (August 2023 rules)
+    differs by one phrase yet measured at 0.9442 cosine - inside the paraphrase
+    range (mean 0.871, max 0.9531, eval/cache-thresholds.json) - so no
+    threshold can tell "reworded question" from "other policy version". The
+    retriever uses this same rule to lift its superseded filter: a cached
+    repealed clause is the same wrong answer as a retrieved one (failure E).
+    """
+    return bool(_OLDER_VERSION.search(question))
+
+
 def should_cache(question: str, answer: Answer, fallback_used: bool) -> bool:
     """The never-cache rules from section 3.3, in one place."""
     if is_followup(question):
+        return False
+    if is_version_question(question):
         return False
     if fallback_used:
         return False

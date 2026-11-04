@@ -163,6 +163,24 @@ def test_follow_up_questions_bypass_the_cache_both_ways() -> None:
     assert response.cached is False
 
 
+def test_version_questions_bypass_the_cache_both_ways() -> None:
+    # A cached answer for the CURRENT rules must not be served for the
+    # August 2023 question (measured 0.9442 cosine, above the 0.88 threshold),
+    # and the old-rules answer must not pollute the cache for later current
+    # questions either - both directions of the same wrong-version failure.
+    hit = AskResponse(request_id="old", answer="cached answer",
+                      citations=[VALID_CITATION], answered_from_context=True,
+                      confidence="high", retrieved=[], provider="fake")
+    provider, cache = FakeProvider(), FakeCache(hit=hit)
+    question = ("Under the August 2023 academic rules, until when could a "
+                "student withdraw from a course?")
+    response = ask(question, FakeRetriever(), provider, cache)
+    assert cache.lookups == []                       # never looked up...
+    assert provider.calls == 1                       # answered from the model
+    assert cache.stores == []                        # ...never stored either
+    assert response.cached is False
+
+
 def test_a_grounded_answer_is_stored_for_next_time() -> None:
     provider, cache = FakeProvider(), FakeCache()
     response = ask("What happens below a 2.00 CGPA?", FakeRetriever(), provider, cache)
