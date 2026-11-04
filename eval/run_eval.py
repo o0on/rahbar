@@ -8,7 +8,8 @@
 Exit code 0 when every gate passes, 1 when any fails. CI relies on that exit code.
 
 Given: talking to the API, reading the golden set, writing results.json, the exit
-code. Yours: the four functions marked STARTER-TODO. They are the evaluation.
+code. The four scoring functions (recall@k, citation validity, summarise, gate)
+are the evaluation itself.
 """
 
 from __future__ import annotations
@@ -242,13 +243,9 @@ def main() -> int:
             })
             print(f"  {q['id']:<5} {rows[-1]['seconds']:>6.2f}s  {q['question'][:60]}")
 
-    try:
-        results = summarise(rows)
-        baseline = json.loads(args.baseline.read_text()) if args.baseline.exists() else None
-        failures = gate(results, baseline)
-    except NotImplementedError as exc:
-        print(f"\nnot implemented yet: {exc}")
-        return 2
+    results = summarise(rows)
+    baseline = json.loads(args.baseline.read_text()) if args.baseline.exists() else None
+    failures = gate(results, baseline)
 
     results["golden"] = str(args.golden)
     results["questions"] = len(rows)

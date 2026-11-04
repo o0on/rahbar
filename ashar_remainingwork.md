@@ -238,7 +238,7 @@ For each, document the symptom, your diagnosis, the metric/log that revealed it,
 
 ## 4. Final Submission Checklist
 
-- [ ] All `raise NotImplementedError` and `STARTER-TODO` markers removed.
+- [ ] All starter-kit placeholder markers and stub functions removed from source.
 - [ ] At least 25 non-merge commits in Git history with conventional commit prefixes.
 - [ ] Both partners author $\ge 35\%$ of commits.
 - [ ] `eval/results.json` and `eval/baseline.json` committed.

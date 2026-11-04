@@ -92,17 +92,13 @@ def main() -> int:
         collection=settings.collection, chroma=f"{settings.chroma_host}:{settings.chroma_port}",
         pod=os.environ.get("HOSTNAME", "-"))
     started = time.perf_counter()
-    try:
-        if args.dummy:
-            from .dummy import write_dummy_index
-            from .store import get_client
+    if args.dummy:
+        from .dummy import write_dummy_index
+        from .store import get_client
 
-            count = write_dummy_index(settings, get_client(settings))
-        else:
-            count = run_pipeline(settings)
-    except NotImplementedError as exc:
-        log("indexer stage not implemented yet", error=str(exc))
-        return 2
+        count = write_dummy_index(settings, get_client(settings))
+    else:
+        count = run_pipeline(settings)
     log("indexer finished", chunks=count, seconds=round(time.perf_counter() - started, 1))
     return 0
 
