@@ -229,10 +229,17 @@ def main() -> int:
     questions = load_golden(args.golden)
     rows = []
     headers = {"Host": args.host} if args.host else {}
-    with httpx.Client(timeout=120.0, headers=headers) as client:
+    # 240s per question: a cold local model (llama3.2 on CPU) can take minutes
+    # for the first answer; CI's stub provider answers in milliseconds.
+    with httpx.Client(timeout=240.0, headers=headers) as client:
         for q in questions:
             started = time.perf_counter()
-            response = ask(client, args.api, q["question"])
+            try:
+                response = ask(client, args.api, q["question"])
+            except httpx.HTTPError as exc:
+                print(f"\n  {q['id']}: request failed ({exc}) - "
+                      f"gate cannot be scored without an answer")
+                return 1
             rows.append({
                 "id": q["id"], "type": q.get("type", "ordinary"),
                 "must_abstain": bool(q.get("must_abstain", False)),
