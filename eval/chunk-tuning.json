@@ -1,0 +1,102 @@
+{
+  "model": "nomic-embed-text",
+  "configs": [
+    {
+      "size": 200,
+      "overlap": 40,
+      "chunks": 1039,
+      "questions_scored": 13,
+      "recall_at_1": 0.6923,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "mean_first_relevant_rank": 1.46,
+      "per_question_recall_at_5": {
+        "q01": 1.0,
+        "q02": 1.0,
+        "q03": 1.0,
+        "q04": 1.0,
+        "q06": 1.0,
+        "q07": 1.0,
+        "q08": 1.0,
+        "q09": 1.0,
+        "q16": 1.0,
+        "q10": 1.0,
+        "q11": 1.0,
+        "q05": 1.0,
+        "q12": 1.0
+      },
+      "stored_tokens": 110431,
+      "corpus_tokens": 94594,
+      "storage_amplification": 1.1674,
+      "mean_chunk_tokens": 106.3,
+      "max_chunk_tokens": 200,
+      "seconds": 31.6
+    },
+    {
+      "size": 400,
+      "overlap": 50,
+      "chunks": 807,
+      "questions_scored": 13,
+      "recall_at_1": 0.6923,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "mean_first_relevant_rank": 1.38,
+      "per_question_recall_at_5": {
+        "q01": 1.0,
+        "q02": 1.0,
+        "q03": 1.0,
+        "q04": 1.0,
+        "q06": 1.0,
+        "q07": 1.0,
+        "q08": 1.0,
+        "q09": 1.0,
+        "q16": 1.0,
+        "q10": 1.0,
+        "q11": 1.0,
+        "q05": 1.0,
+        "q12": 1.0
+      },
+      "stored_tokens": 108525,
+      "corpus_tokens": 94594,
+      "storage_amplification": 1.1473,
+      "mean_chunk_tokens": 134.5,
+      "max_chunk_tokens": 400,
+      "seconds": 23.2
+    },
+    {
+      "size": 800,
+      "overlap": 100,
+      "chunks": 927,
+      "questions_scored": 13,
+      "recall_at_1": 0.8462,
+      "recall_at_3": 0.8462,
+      "recall_at_5": 1.0,
+      "mean_first_relevant_rank": 1.62,
+      "per_question_recall_at_5": {
+        "q01": 1.0,
+        "q02": 1.0,
+        "q03": 1.0,
+        "q04": 1.0,
+        "q06": 1.0,
+        "q07": 1.0,
+        "q08": 1.0,
+        "q09": 1.0,
+        "q16": 1.0,
+        "q10": 1.0,
+        "q11": 1.0,
+        "q05": 1.0,
+        "q12": 1.0
+      },
+      "stored_tokens": 126159,
+      "corpus_tokens": 94594,
+      "storage_amplification": 1.3337,
+      "mean_chunk_tokens": 136.1,
+      "max_chunk_tokens": 800,
+      "seconds": 33.0
+    }
+  ],
+  "chosen": {
+    "size": 400,
+    "overlap": 50
+  }
+}
