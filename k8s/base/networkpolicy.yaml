@@ -158,3 +158,39 @@ spec:
       ports:
         - protocol: TCP
           port: 11434
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ollama
+  namespace: rahbar
+spec:
+  # Selects nothing until k8s/base/ollama-incluster.yaml is deployed (it
+  # is not in the base kustomization; the ci overlay adds it). Without
+  # this rule default-deny-all would isolate the bonus Ollama pod: the
+  # api and indexer could egress to 11434 but nothing could ingress.
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: ollama
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: api
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: indexer
+      ports:
+        - protocol: TCP
+          port: 11434
+  egress:
+    # `ollama pull` fetches model weights over HTTPS.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443

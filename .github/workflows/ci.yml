@@ -85,6 +85,8 @@ jobs:
             --dry-run=client -o yaml > k8s/base/secret.yaml
           kustomize build k8s/overlays/prod | kubeconform -strict -summary -ignore-missing-schemas
           kustomize build k8s/overlays/ci | kubeconform -strict -summary -ignore-missing-schemas
+          # applied by the e2e job but outside every kustomization
+          kubeconform -strict -summary -ignore-missing-schemas k8s/base/ollama-incluster.yaml
 
   build:
     needs: [test, manifests]
@@ -204,6 +206,12 @@ jobs:
             --from-literal=LLM_API_KEY="ci-placeholder" \
             --dry-run=client -o yaml > k8s/base/secret.yaml
           kubectl apply -k k8s/overlays/ci
+          # The BONUS in-cluster Ollama (Deployment + Service + model PVC)
+          # is applied explicitly: kustomize refuses files outside an
+          # overlay, base keeps it out so prod still uses host Ollama, and
+          # the ci overlay's OLLAMA_URL=http://ollama:11434 needs it for
+          # query embeddings and the fixture indexer.
+          kubectl apply -f k8s/base/ollama-incluster.yaml
 
       - name: Wait for core dependencies
         run: |

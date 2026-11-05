@@ -18,6 +18,10 @@ namespace: rahbar
 
 resources:
   - ../../base
+  # ollama-incluster.yaml is applied explicitly by the e2e job
+  # (kubectl apply -f k8s/base/ollama-incluster.yaml): kustomize refuses
+  # files outside this directory, and base keeps the BONUS manifest out
+  # of its own resources so prod still points at host Ollama.
 
 patches:
   - path: delete-base-indexer-job.yaml
