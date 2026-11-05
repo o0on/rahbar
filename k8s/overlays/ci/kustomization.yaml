@@ -1,0 +1,37 @@
+# The overlay CI's e2e-eval job applies (section 6). Differences from dev:
+#
+# * RETRIEVER=chroma so the gate measures the real retrieval path,
+# * LLM_PROVIDER=stub so no model is downloaded for generation,
+# * OLLAMA_URL points at the in-cluster Service (queries still need the
+#   pinned embedding model), and
+# * the base indexer Job is deleted: /corpus does not exist anywhere in
+#   this stack (the real corpus is fetched at deploy time, never stored
+#   in git - docs/CORPUS.md), so that Job would run against a missing
+#   directory next to the fixture Job that actually populates the index.
+#
+# The CI workflow creates the gitignored k8s/base/secret.yaml before
+# `kubectl apply -k`, because the base kustomization references it.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: rahbar
+
+resources:
+  - ../../base
+
+patches:
+  - path: delete-base-indexer-job.yaml
+
+  - target:
+      kind: ConfigMap
+      name: rahbar-config
+    patch: |-
+      - op: replace
+        path: /data/RETRIEVER
+        value: "chroma"
+      - op: replace
+        path: /data/LLM_PROVIDER
+        value: "stub"
+      - op: replace
+        path: /data/OLLAMA_URL
+        value: "http://ollama:11434"

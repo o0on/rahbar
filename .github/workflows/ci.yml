@@ -74,7 +74,13 @@ jobs:
 
       - name: Validate Kubernetes Manifests
         run: |
+          # k8s/base/secret.yaml is gitignored (section 4.7); render a
+          # placeholder or no overlay that includes the base can build at all.
+          kubectl create secret generic rahbar-secret -n rahbar \
+            --from-literal=LLM_API_KEY="ci-placeholder" \
+            --dry-run=client -o yaml > k8s/base/secret.yaml
           kustomize build k8s/overlays/prod | kubeconform -strict -summary -ignore-missing-schemas
+          kustomize build k8s/overlays/ci | kubeconform -strict -summary -ignore-missing-schemas
 
   build:
     needs: [test, manifests]
@@ -137,6 +143,7 @@ jobs:
   e2e-eval:
     needs: [build]
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -154,27 +161,111 @@ jobs:
 
       - name: Install eval dependencies
         run: |
-          pip install -r api/requirements.txt pyyaml httpx
+          # eval/run_eval.py speaks HTTP only: the pinned client plus YAML.
+          pip install "httpx==0.28.1" pyyaml
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build API image for the cluster
+        uses: docker/build-push-action@v5
+        with:
+          context: api
+          load: true
+          tags: rahbar-api:latest
+
+      - name: Build Indexer image for the cluster
+        uses: docker/build-push-action@v5
+        with:
+          context: indexer
+          load: true
+          tags: rahbar-indexer:latest
+
+      - name: Load images into kind
+        run: |
+          kind load docker-image rahbar-api:latest --name kind-rahbar
+          kind load docker-image rahbar-indexer:latest --name kind-rahbar
 
       - name: Apply Kubernetes manifests
         run: |
-          kubectl apply -k k8s/overlays/dev
-          kubectl create secret generic rahbar-secret -n rahbar --from-literal=LLM_API_KEY="test-key" --dry-run=client -o yaml | kubectl apply -f -
+          # k8s/base/secret.yaml is gitignored (section 4.7): without it the
+          # base kustomization cannot build, so CI renders a placeholder.
+          kubectl create secret generic rahbar-secret -n rahbar \
+            --from-literal=LLM_API_KEY="ci-placeholder" \
+            --dry-run=client -o yaml > k8s/base/secret.yaml
+          kubectl apply -k k8s/overlays/ci
 
       - name: Wait for core dependencies
         run: |
-          kubectl rollout status statefulset/chroma -n rahbar --timeout=120s || true
-          kubectl rollout status deployment/redis -n rahbar --timeout=120s || true
+          kubectl rollout status statefulset/chroma -n rahbar --timeout=240s
+          kubectl rollout status deployment/redis -n rahbar --timeout=120s
+          # the startup probe allows 300s before /api/version must answer
+          kubectl rollout status deployment/ollama -n rahbar --timeout=420s
 
-      - name: Run Indexer Job on fixtures
-        run: |
-          kubectl create job --from=cronjob/reindex fixture-indexer -n rahbar || kubectl apply -f k8s/base/indexer-job.yaml
-          kubectl wait --for=condition=complete job/indexer -n rahbar --timeout=180s || true
+      - name: Pull the pinned embedding model into Ollama
+        timeout-minutes: 10
+        # queries are embedded in-cluster (RETRIEVER=chroma); generation is the
+        # stub, so llama3.2 is deliberately never pulled here
+        run: kubectl exec deploy/ollama -n rahbar -- ollama pull nomic-embed-text
 
-      - name: Verify API rollout
+      - name: Index the evaluation fixtures
         run: |
-          kubectl rollout status deployment/api -n rahbar --timeout=180s || true
+          # The three fixture documents become the Job's whole corpus at
+          # /corpus; README and the golden set stay out of the ConfigMap.
+          kubectl create configmap rahbar-fixtures -n rahbar \
+            --from-file=academic-rules-2026.md=eval/fixtures/academic-rules-2026.md \
+            --from-file=academic-rules-2023.md=eval/fixtures/academic-rules-2023.md \
+            --from-file=fees-2026.md=eval/fixtures/fees-2026.md
+          kubectl apply -f eval/fixtures/indexer-job.yaml
+          if ! kubectl wait --for=condition=complete job/fixture-indexer -n rahbar --timeout=300s; then
+            echo "::group::fixture-indexer logs"
+            kubectl logs job/fixture-indexer -n rahbar --tail=200
+            kubectl describe job/fixture-indexer -n rahbar
+            echo "::endgroup::"
+            exit 1
+          fi
+          kubectl logs job/fixture-indexer -n rahbar --tail=5
+
+      - name: Wait for the API rollout
+        run: |
+          # readyz requires a populated collection, so this comes after the Job
+          kubectl rollout status deployment/api -n rahbar --timeout=300s
+
+      - name: Port-forward the API
+        run: |
+          kubectl port-forward -n rahbar svc/api 8080:8000 > /tmp/port-forward.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/readyz > /tmp/readyz.json; then
+              cat /tmp/readyz.json
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "the API never answered /readyz through the port-forward"
+          cat /tmp/port-forward.log
+          exit 1
 
       - name: Run evaluation gate
         run: |
-          python eval/run_eval.py --ci || true
+          python eval/run_eval.py \
+            --api http://127.0.0.1:8080 \
+            --golden eval/fixtures/golden.fixture.yaml \
+            --baseline /tmp/fixture-baseline.json \
+            --out /tmp/rahbar-fixture-results.json
+
+      - name: Upload evaluation results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fixture-eval-results
+          path: |
+            /tmp/rahbar-fixture-results.json
+            /tmp/readyz.json
+          if-no-files-found: ignore
+
+      - name: Dump cluster state on failure
+        if: failure()
+        run: |
+          kubectl get pods -n rahbar -o wide
+          kubectl logs deploy/api -n rahbar --tail=100
+          kubectl logs job/fixture-indexer -n rahbar --tail=100

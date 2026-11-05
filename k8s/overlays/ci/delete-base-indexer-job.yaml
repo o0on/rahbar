@@ -1,0 +1,9 @@
+# CI indexes eval/fixtures with eval/fixtures/indexer-job.yaml instead; the
+# base Job's /corpus volume exists in no CI manifest, so it would only fail
+# (or worse, prune the fixture chunks) alongside the fixture Job.
+$patch: delete
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: indexer
+  namespace: rahbar
