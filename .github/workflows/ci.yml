@@ -102,9 +102,12 @@ jobs:
       - name: Build Indexer image
         uses: docker/build-push-action@v5
         with:
-          context: indexer
+          context: .
+          file: indexer/Dockerfile
           push: false
           tags: rahbar-indexer:${{ github.sha }}
+          build-args: |
+            FETCH_CORPUS=0
 
       - name: Build UI image
         uses: docker/build-push-action@v5
@@ -177,9 +180,12 @@ jobs:
       - name: Build Indexer image for the cluster
         uses: docker/build-push-action@v5
         with:
-          context: indexer
+          context: .
+          file: indexer/Dockerfile
           load: true
           tags: rahbar-indexer:latest
+          build-args: |
+            FETCH_CORPUS=0
 
       - name: Load images into kind
         run: |

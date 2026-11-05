@@ -42,7 +42,7 @@ cluster: ## start minikube with Calico, then enable metrics-server and ingress
 
 images: ## build the three images and load them into minikube (needs yours: Dockerfiles)
 	docker build -t rahbar-api:$(TAG) api
-	docker build -t rahbar-indexer:$(TAG) indexer
+	docker build -t rahbar-indexer:$(TAG) -f indexer/Dockerfile .
 	docker build -t rahbar-ui:$(TAG) ui
 	minikube image load rahbar-api:$(TAG)
 	minikube image load rahbar-indexer:$(TAG)

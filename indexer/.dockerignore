@@ -1,3 +1,6 @@
+# The indexer image now builds from the repo root (docker build -f
+# indexer/Dockerfile .), so the root .dockerignore governs that context and
+# corpus/ is deliberately included there. Kept for indexer-scoped builds.
 .git
 .github
 __pycache__
@@ -7,7 +10,6 @@ __pycache__
 .venv
 venv
 env
-corpus
 eval
 tests
 .pytest_cache
