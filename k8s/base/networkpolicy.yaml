@@ -129,6 +129,12 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: api
+        # the indexer rewrites the cache generation after each re-index
+        # (pipeline/store.py); without this rule every Job run fails on
+        # "Timeout connecting to server" even though Redis is healthy.
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: indexer
       ports:
         - protocol: TCP
           port: 6379
@@ -152,6 +158,16 @@ spec:
       ports:
         - protocol: TCP
           port: 8000
+    # store.py invalidates the API's semantic cache after every run and
+    # fails the Job when Redis is unreachable - so the egress has to exist
+    # or every indexer run dies at the last step.
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+      ports:
+        - protocol: TCP
+          port: 6379
     - to:
         - ipBlock:
             cidr: 0.0.0.0/0

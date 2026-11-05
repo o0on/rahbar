@@ -197,6 +197,24 @@ jobs:
         run: |
           kind load docker-image rahbar-api:latest --name kind-rahbar
           kind load docker-image rahbar-indexer:latest --name kind-rahbar
+          # The runtime images are pre-pulled on the host and imported with
+          # ctr: an in-node pull of chroma (718MB) can sit with no progress
+          # for many minutes and blew the rollout timeout at "Wait for core
+          # dependencies" (e2e failed there on run 42070931906). kind load
+          # docker-image cannot be used for them either - it fails on
+          # Hub-pulled multi-arch images with "content digest ... not found"
+          # - so import the docker save archive directly, one image at a
+          # time to keep peak disk use low.
+          node="$(kind get nodes --name kind-rahbar)"
+          for img in chromadb/chroma:1.0.12 redis:7.4-alpine ollama/ollama:0.5.7; do
+            for attempt in 1 2 3; do
+              docker pull "$img" && break || { echo "pull attempt $attempt failed for $img"; sleep 10; }
+            done
+            docker image inspect "$img" > /dev/null
+            docker save -o /tmp/kind-import.tar "$img"
+            docker exec -i "$node" ctr --namespace=k8s.io images import - < /tmp/kind-import.tar
+            rm -f /tmp/kind-import.tar
+          done
 
       - name: Apply Kubernetes manifests
         run: |

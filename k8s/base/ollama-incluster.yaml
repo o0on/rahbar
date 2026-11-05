@@ -59,6 +59,14 @@ spec:
           env:
             - name: OLLAMA_HOST
               value: "0.0.0.0:11434"
+            # CRI does not set HOME (docker does), and uid 1000 has no passwd
+            # entry in the ollama image, so ollama resolves its home to "/" and
+            # dies on startup with `mkdir /.ollama: permission denied`. HOME
+            # must be the model volume itself: /root in the image is drwx------
+            # root-only, so uid 1000 cannot even traverse it to reach a mount
+            # placed at /root/.ollama (mkdir would fail with permission denied).
+            - name: HOME
+              value: "/models"
           ports:
             - containerPort: 11434
               name: http
@@ -90,7 +98,7 @@ spec:
             periodSeconds: 10
           volumeMounts:
             - name: models
-              mountPath: /root/.ollama
+              mountPath: /models
       volumes:
         - name: models
           persistentVolumeClaim:

@@ -16,6 +16,11 @@ spec:
       labels:
         app.kubernetes.io/name: chroma
     spec:
+      # The chroma Service injects CHROMA_PORT=tcp://... (and CHROMA_*_TCP_*)
+      # into every pod in the namespace; chroma 1.0.12 parses CHROMA_* as its
+      # own config and panics on the string ("expected u16 for key PORT").
+      # It needs no service env - clients reach it via CHROMA_URL.
+      enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
