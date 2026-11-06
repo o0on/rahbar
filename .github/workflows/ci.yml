@@ -157,6 +157,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Free disk space
+        # The runner image ships Android/.NET/GHC/CodeQL toolchains this job
+        # never touches. Without this cleanup the e2e ran out of disk: the
+        # kind node image, two image builds and their buildx cache left only
+        # a couple of GB, and `docker save` for chroma died 24s into "Load
+        # images into kind" (run 42087910058). Removing them returns ~20GB.
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+            /usr/local/share/boost /usr/share/swift /opt/hostedtoolcache/CodeQL
+          echo "::notice::free disk after toolchain cleanup: $(df -h / | awk 'NR==2 {print $4}')"
+
       - name: Create kind cluster
         uses: helm/kind-action@v1.10.0
         with:
@@ -195,25 +206,33 @@ jobs:
 
       - name: Load images into kind
         run: |
+          set -o pipefail
+          # On failure the annotation names the exact command: job logs
+          # require sign-in, annotations are public.
+          trap 'echo "::error::load images failed at line $LINENO: $BASH_COMMAND"' ERR
           kind load docker-image rahbar-api:latest --name kind-rahbar
           kind load docker-image rahbar-indexer:latest --name kind-rahbar
-          # The runtime images are pre-pulled on the host and imported with
-          # ctr: an in-node pull of chroma (718MB) can sit with no progress
-          # for many minutes and blew the rollout timeout at "Wait for core
-          # dependencies" (e2e failed there on run 42070931906). kind load
-          # docker-image cannot be used for them either - it fails on
-          # Hub-pulled multi-arch images with "content digest ... not found"
-          # - so import the docker save archive directly, one image at a
-          # time to keep peak disk use low.
+          # Runtime images: try to pre-import them from the host so an in-node
+          # pull can never stall the rollout (an in-node chroma pull sat with
+          # no progress for 17+ min locally; run 42070931906 died at "Wait for
+          # core dependencies"). kind load docker-image itself fails on
+          # Hub-pulled multi-arch images ("content digest ... not found"), so
+          # stream `docker save` straight into ctr - no temp tar, which the
+          # classic runner store would write uncompressed (4.9GB for ollama) -
+          # and drop the host copy right after. If any of that fails the
+          # step must not fail: the manifests use imagePullPolicy
+          # IfNotPresent, so the kubelet pulls whatever is missing in-node
+          # and the warning below says which image fell back.
           node="$(kind get nodes --name kind-rahbar)"
           for img in chromadb/chroma:1.0.12 redis:7.4-alpine ollama/ollama:0.5.7; do
-            for attempt in 1 2 3; do
-              docker pull "$img" && break || { echo "pull attempt $attempt failed for $img"; sleep 10; }
-            done
-            docker image inspect "$img" > /dev/null
-            docker save -o /tmp/kind-import.tar "$img"
-            docker exec -i "$node" ctr --namespace=k8s.io images import - < /tmp/kind-import.tar
-            rm -f /tmp/kind-import.tar
+            if docker pull "$img" 2> /tmp/pull-err.log \
+              && docker save "$img" 2>> /tmp/pull-err.log | docker exec -i "$node" ctr --namespace=k8s.io images import - 2>> /tmp/pull-err.log \
+              && docker rmi "$img" > /dev/null; then
+              echo "::notice::preloaded $img; free disk: $(df -h / | awk 'NR==2 {print $4}')"
+            else
+              echo "::warning::preload failed for $img ($(tail -c 300 /tmp/pull-err.log | tr '\n' ' ')); the kubelet will pull it in-node"
+              docker rmi "$img" > /dev/null 2>&1 || true
+            fi
           done
 
       - name: Apply Kubernetes manifests
@@ -233,16 +252,27 @@ jobs:
 
       - name: Wait for core dependencies
         run: |
-          kubectl rollout status statefulset/chroma -n rahbar --timeout=240s
-          kubectl rollout status deployment/redis -n rahbar --timeout=120s
+          # Every failure path below emits a public annotation: the job logs
+          # need sign-in, but annotations are visible through the API.
+          wait_one() {
+            if kubectl "$@"; then return 0; fi
+            echo "::error::kubectl $* failed; free disk: $(df -h / | awk 'NR==2 {print $4}'); events: $(kubectl get events -n rahbar --sort-by=.lastTimestamp 2>/dev/null | tail -6 | tr '\n' '|')"
+            return 1
+          }
+          wait_one rollout status statefulset/chroma -n rahbar --timeout=240s
+          wait_one rollout status deployment/redis -n rahbar --timeout=120s
           # the startup probe allows 300s before /api/version must answer
-          kubectl rollout status deployment/ollama -n rahbar --timeout=420s
+          wait_one rollout status deployment/ollama -n rahbar --timeout=420s
 
       - name: Pull the pinned embedding model into Ollama
         timeout-minutes: 10
         # queries are embedded in-cluster (RETRIEVER=chroma); generation is the
         # stub, so llama3.2 is deliberately never pulled here
-        run: kubectl exec deploy/ollama -n rahbar -- ollama pull nomic-embed-text
+        run: |
+          if ! kubectl exec deploy/ollama -n rahbar -- ollama pull nomic-embed-text; then
+            echo "::error::ollama pull nomic-embed-text failed; events: $(kubectl get events -n rahbar --sort-by=.lastTimestamp 2>/dev/null | tail -4 | tr '\n' '|')"
+            exit 1
+          fi
 
       - name: Index the evaluation fixtures
         run: |
@@ -258,6 +288,7 @@ jobs:
             kubectl logs job/fixture-indexer -n rahbar --tail=200
             kubectl describe job/fixture-indexer -n rahbar
             echo "::endgroup::"
+            echo "::error::fixture-indexer did not complete; last logs: $(kubectl logs job/fixture-indexer -n rahbar --tail=8 2>/dev/null | tr '\n' '|')"
             exit 1
           fi
           kubectl logs job/fixture-indexer -n rahbar --tail=5
@@ -265,7 +296,10 @@ jobs:
       - name: Wait for the API rollout
         run: |
           # readyz requires a populated collection, so this comes after the Job
-          kubectl rollout status deployment/api -n rahbar --timeout=300s
+          if ! kubectl rollout status deployment/api -n rahbar --timeout=300s; then
+            echo "::error::api rollout failed; pods: $(kubectl get pods -n rahbar -l app.kubernetes.io/name=api 2>/dev/null | tr '\n' '|'); logs: $(kubectl logs deploy/api -n rahbar --tail=8 2>/dev/null | tr '\n' '|')"
+            exit 1
+          fi
 
       - name: Port-forward the API
         run: |
@@ -277,17 +311,25 @@ jobs:
             fi
             sleep 2
           done
-          echo "the API never answered /readyz through the port-forward"
+          echo "::error::the API never answered /readyz; port-forward log: $(tr '\n' '|' < /tmp/port-forward.log 2>/dev/null | tail -c 500)"
           cat /tmp/port-forward.log
           exit 1
 
       - name: Run evaluation gate
         run: |
-          python eval/run_eval.py \
+          set +e
+          out=$(python eval/run_eval.py \
             --api http://127.0.0.1:8080 \
             --golden eval/fixtures/golden.fixture.yaml \
             --baseline /tmp/fixture-baseline.json \
-            --out /tmp/rahbar-fixture-results.json
+            --out /tmp/rahbar-fixture-results.json 2>&1)
+          status=$?
+          set -e
+          printf '%s\n' "$out"
+          if [ "$status" -ne 0 ]; then
+            echo "::error::eval gate failed: $(printf '%s' "$out" | tr '\n' '|' | tail -c 700)"
+            exit "$status"
+          fi
 
       - name: Upload evaluation results
         if: always()
