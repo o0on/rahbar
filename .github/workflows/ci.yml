@@ -1,0 +1,349 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+  pull-requests: read
+  security-events: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install linters
+        run: |
+          python -m pip install --upgrade pip
+          # Pinned to the versions in requirements-dev.txt (ruff==0.11.8,
+          # mypy==1.15.0). Unpinned, a newer ruff enables new rules by
+          # default (FURB/BLE/ISC...) and the lint step fails on code the
+          # pinned version accepts.
+          pip install "ruff==0.11.8" "mypy==1.15.0"
+
+      - name: Run Ruff Linter
+        run: ruff check .
+
+      - name: Run Mypy Type Checker
+        run: mypy api/app indexer/pipeline --ignore-missing-imports
+
+  test:
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r api/requirements.txt -r api/requirements-dev.txt
+          pip install -r indexer/requirements.txt -r indexer/requirements-dev.txt
+
+      - name: Run unit tests with pytest & coverage
+        run: |
+          pytest api/tests indexer/tests --cov=api/app --cov=indexer/pipeline --cov-report=term-missing --cov-fail-under=60
+
+  manifests:
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Kustomize and Kubeconform
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+          curl -sL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz | tar xz
+          sudo mv kubeconform /usr/local/bin/
+
+      - name: Validate Kubernetes Manifests
+        run: |
+          # k8s/base/secret.yaml is gitignored (section 4.7); render a
+          # placeholder or no overlay that includes the base can build at all.
+          kubectl create secret generic rahbar-secret -n rahbar \
+            --from-literal=LLM_API_KEY="ci-placeholder" \
+            --dry-run=client -o yaml > k8s/base/secret.yaml
+          kustomize build k8s/overlays/prod | kubeconform -strict -summary -ignore-missing-schemas
+          kustomize build k8s/overlays/ci | kubeconform -strict -summary -ignore-missing-schemas
+          # applied by the e2e job but outside every kustomization
+          kubeconform -strict -summary -ignore-missing-schemas k8s/base/ollama-incluster.yaml
+
+  build:
+    needs: [test, manifests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build API image
+        uses: docker/build-push-action@v5
+        with:
+          context: api
+          push: false
+          tags: rahbar-api:${{ github.sha }}
+
+      - name: Build Indexer image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: indexer/Dockerfile
+          push: false
+          tags: rahbar-indexer:${{ github.sha }}
+          build-args: |
+            FETCH_CORPUS=0
+
+      - name: Build UI image
+        uses: docker/build-push-action@v5
+        with:
+          context: ui
+          push: false
+          tags: rahbar-ui:${{ github.sha }}
+
+  scan:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build API image for scan
+        uses: docker/build-push-action@v5
+        with:
+          context: api
+          load: true
+          tags: rahbar-api:${{ github.sha }}
+
+      - name: Run Trivy vulnerability scanner on API
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "rahbar-api:${{ github.sha }}"
+          format: "table"
+          exit-code: "0"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+
+  e2e-eval:
+    needs: [build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        # The runner image ships Android/.NET/GHC/CodeQL toolchains this job
+        # never touches. Without this cleanup the e2e ran out of disk: the
+        # kind node image, two image builds and their buildx cache left only
+        # a couple of GB, and `docker save` for chroma died 24s into "Load
+        # images into kind" (run 42087910058). Removing them returns ~20GB.
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+            /usr/local/share/boost /usr/share/swift /opt/hostedtoolcache/CodeQL
+          echo "::notice::free disk after toolchain cleanup: $(df -h / | awk 'NR==2 {print $4}')"
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.10.0
+        with:
+          cluster_name: kind-rahbar
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install eval dependencies
+        run: |
+          # eval/run_eval.py speaks HTTP only: the pinned client plus YAML.
+          pip install "httpx==0.28.1" pyyaml
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build API image for the cluster
+        uses: docker/build-push-action@v5
+        with:
+          context: api
+          load: true
+          tags: rahbar-api:latest
+
+      - name: Build Indexer image for the cluster
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: indexer/Dockerfile
+          load: true
+          tags: rahbar-indexer:latest
+          build-args: |
+            FETCH_CORPUS=0
+
+      - name: Load images into kind
+        run: |
+          set -o pipefail
+          # On failure the annotation names the exact command: job logs
+          # require sign-in, annotations are public.
+          trap 'echo "::error::load images failed at line $LINENO: $BASH_COMMAND"' ERR
+          kind load docker-image rahbar-api:latest --name kind-rahbar
+          kind load docker-image rahbar-indexer:latest --name kind-rahbar
+          # Runtime images: try to pre-import them from the host so an in-node
+          # pull can never stall the rollout (an in-node chroma pull sat with
+          # no progress for 17+ min locally; run 42070931906 died at "Wait for
+          # core dependencies"). kind load docker-image itself fails on
+          # Hub-pulled multi-arch images ("content digest ... not found"), so
+          # stream `docker save` straight into ctr - no temp tar, which the
+          # classic runner store would write uncompressed (4.9GB for ollama) -
+          # and drop the host copy right after. If any of that fails the
+          # step must not fail: the manifests use imagePullPolicy
+          # IfNotPresent, so the kubelet pulls whatever is missing in-node
+          # and the warning below says which image fell back.
+          node="$(kind get nodes --name kind-rahbar)"
+          for img in chromadb/chroma:1.0.12 redis:7.4-alpine ollama/ollama:0.5.7; do
+            if docker pull "$img" 2> /tmp/pull-err.log \
+              && docker save "$img" 2>> /tmp/pull-err.log | docker exec -i "$node" ctr --namespace=k8s.io images import - 2>> /tmp/pull-err.log \
+              && docker rmi "$img" > /dev/null; then
+              echo "::notice::preloaded $img; free disk: $(df -h / | awk 'NR==2 {print $4}')"
+            else
+              echo "::warning::preload failed for $img ($(tail -c 300 /tmp/pull-err.log | tr '\n' ' ')); the kubelet will pull it in-node"
+              docker rmi "$img" > /dev/null 2>&1 || true
+            fi
+          done
+
+      - name: Apply Kubernetes manifests
+        run: |
+          # k8s/base/secret.yaml is gitignored (section 4.7): without it the
+          # base kustomization cannot build, so CI renders a placeholder.
+          kubectl create secret generic rahbar-secret -n rahbar \
+            --from-literal=LLM_API_KEY="ci-placeholder" \
+            --dry-run=client -o yaml > k8s/base/secret.yaml
+          kubectl apply -k k8s/overlays/ci
+          # The BONUS in-cluster Ollama (Deployment + Service + model PVC)
+          # is applied explicitly: kustomize refuses files outside an
+          # overlay, base keeps it out so prod still uses host Ollama, and
+          # the ci overlay's OLLAMA_URL=http://ollama:11434 needs it for
+          # query embeddings and the fixture indexer.
+          kubectl apply -f k8s/base/ollama-incluster.yaml
+
+      - name: Wait for core dependencies
+        run: |
+          # Every failure path below emits a public annotation: the job logs
+          # need sign-in, but annotations are visible through the API.
+          wait_one() {
+            if kubectl "$@"; then return 0; fi
+            echo "::error::kubectl $* failed; free disk: $(df -h / | awk 'NR==2 {print $4}'); events: $(kubectl get events -n rahbar --sort-by=.lastTimestamp 2>/dev/null | tail -6 | tr '\n' '|')"
+            return 1
+          }
+          wait_one rollout status statefulset/chroma -n rahbar --timeout=240s
+          wait_one rollout status deployment/redis -n rahbar --timeout=120s
+          # the startup probe allows 300s before /api/version must answer
+          wait_one rollout status deployment/ollama -n rahbar --timeout=420s
+
+      - name: Pull the pinned embedding model into Ollama
+        timeout-minutes: 10
+        # queries are embedded in-cluster (RETRIEVER=chroma); generation is the
+        # stub, so llama3.2 is deliberately never pulled here
+        run: |
+          if ! kubectl exec deploy/ollama -n rahbar -- ollama pull nomic-embed-text; then
+            echo "::error::ollama pull nomic-embed-text failed; events: $(kubectl get events -n rahbar --sort-by=.lastTimestamp 2>/dev/null | tail -4 | tr '\n' '|')"
+            exit 1
+          fi
+
+      - name: Index the evaluation fixtures
+        run: |
+          # The three fixture documents become the Job's whole corpus at
+          # /corpus; README and the golden set stay out of the ConfigMap.
+          kubectl create configmap rahbar-fixtures -n rahbar \
+            --from-file=academic-rules-2026.md=eval/fixtures/academic-rules-2026.md \
+            --from-file=academic-rules-2023.md=eval/fixtures/academic-rules-2023.md \
+            --from-file=fees-2026.md=eval/fixtures/fees-2026.md
+          kubectl apply -f eval/fixtures/indexer-job.yaml
+          if ! kubectl wait --for=condition=complete job/fixture-indexer -n rahbar --timeout=300s; then
+            echo "::group::fixture-indexer logs"
+            kubectl logs job/fixture-indexer -n rahbar --tail=200
+            kubectl describe job/fixture-indexer -n rahbar
+            echo "::endgroup::"
+            echo "::error::fixture-indexer did not complete; last logs: $(kubectl logs job/fixture-indexer -n rahbar --tail=8 2>/dev/null | tr '\n' '|')"
+            exit 1
+          fi
+          kubectl logs job/fixture-indexer -n rahbar --tail=5
+
+      - name: Wait for the API rollout
+        run: |
+          # readyz requires a populated collection, so this comes after the Job
+          if ! kubectl rollout status deployment/api -n rahbar --timeout=300s; then
+            echo "::error::api rollout failed; pods: $(kubectl get pods -n rahbar -l app.kubernetes.io/name=api 2>/dev/null | tr '\n' '|'); logs: $(kubectl logs deploy/api -n rahbar --tail=8 2>/dev/null | tr '\n' '|')"
+            exit 1
+          fi
+
+      - name: Port-forward the API
+        run: |
+          kubectl port-forward -n rahbar svc/api 8080:8000 > /tmp/port-forward.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/readyz > /tmp/readyz.json; then
+              cat /tmp/readyz.json
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::the API never answered /readyz; port-forward log: $(tr '\n' '|' < /tmp/port-forward.log 2>/dev/null | tail -c 500)"
+          cat /tmp/port-forward.log
+          exit 1
+
+      - name: Run evaluation gate
+        run: |
+          set +e
+          out=$(python eval/run_eval.py \
+            --api http://127.0.0.1:8080 \
+            --golden eval/fixtures/golden.fixture.yaml \
+            --baseline /tmp/fixture-baseline.json \
+            --out /tmp/rahbar-fixture-results.json 2>&1)
+          status=$?
+          set -e
+          printf '%s\n' "$out"
+          if [ "$status" -ne 0 ]; then
+            echo "::error::eval gate failed: $(printf '%s' "$out" | tr '\n' '|' | tail -c 700)"
+            exit "$status"
+          fi
+
+      - name: Upload evaluation results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fixture-eval-results
+          path: |
+            /tmp/rahbar-fixture-results.json
+            /tmp/readyz.json
+          if-no-files-found: ignore
+
+      - name: Dump cluster state on failure
+        if: failure()
+        run: |
+          kubectl get pods -n rahbar -o wide
+          kubectl logs deploy/api -n rahbar --tail=100
+          kubectl logs job/fixture-indexer -n rahbar --tail=100

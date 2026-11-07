@@ -1,0 +1,17 @@
+# Evidence 5: kubectl get hpa
+
+Namespace: rahbar
+
+Command:
+kubectl get hpa -n rahbar
+
+Output:
+NAME      REFERENCE        TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+api-hpa   Deployment/api   21%/70%         3         8         3          15m
+
+Command:
+kubectl describe hpa api-hpa -n rahbar
+
+Verification:
+Metrics-server addon is operational and collecting CPU metrics from pods against requested resources.
+Replicas correctly scaled at baseline 3, ready to burst to 8 under sustained query spikes.

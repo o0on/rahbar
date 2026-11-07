@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: chroma
+  namespace: rahbar
+  labels:
+    app.kubernetes.io/name: chroma
+spec:
+  serviceName: chroma
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: chroma
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: chroma
+    spec:
+      # The chroma Service injects CHROMA_PORT=tcp://... (and CHROMA_*_TCP_*)
+      # into every pod in the namespace; chroma 1.0.12 parses CHROMA_* as its
+      # own config and panics on the string ("expected u16 for key PORT").
+      # It needs no service env - clients reach it via CHROMA_URL.
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: chroma
+          image: chromadb/chroma:1.0.12
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: IS_PERSISTENT
+              value: "TRUE"
+            - name: PERSIST_DIRECTORY
+              value: "/data"
+            - name: ANONYMIZED_TELEMETRY
+              value: "FALSE"
+          ports:
+            - containerPort: 8000
+              name: http
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /api/v2/heartbeat
+              port: 8000
+            failureThreshold: 3
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /api/v2/heartbeat
+              port: 8000
+            failureThreshold: 3
+            periodSeconds: 10
+          volumeMounts:
+            - name: chroma-data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: chroma-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi

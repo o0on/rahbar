@@ -1,0 +1,92 @@
+{
+  "model": "nomic-embed-text",
+  "shipped_threshold": 0.88,
+  "paraphrase_pairs": {
+    "q01": 0.8357,
+    "q02": 0.944,
+    "q03": 0.92,
+    "q04": 0.8656,
+    "q06": 0.858,
+    "q07": 0.9531,
+    "q08": 0.9363,
+    "q09": 0.879,
+    "q16": 0.9307,
+    "q10": 0.8488,
+    "q11": 0.6132,
+    "q05": 0.9171,
+    "q12": 0.8687,
+    "q13": 0.9239,
+    "q14": 0.9133,
+    "q15": 0.7282
+  },
+  "paraphrase_min": 0.6132,
+  "paraphrase_mean": 0.871,
+  "paraphrase_max": 0.9531,
+  "cross_pairs_over_threshold": [
+    {
+      "a": "q09",
+      "b": "q10",
+      "similarity": 0.9442
+    }
+  ],
+  "cross_pairs_top10": [
+    {
+      "a": "q09",
+      "b": "q10",
+      "similarity": 0.9442
+    },
+    {
+      "a": "q08",
+      "b": "q12",
+      "similarity": 0.6897
+    },
+    {
+      "a": "q06",
+      "b": "q10",
+      "similarity": 0.6575
+    },
+    {
+      "a": "q06",
+      "b": "q09",
+      "similarity": 0.654
+    },
+    {
+      "a": "q02",
+      "b": "q10",
+      "similarity": 0.6348
+    },
+    {
+      "a": "q16",
+      "b": "q13",
+      "similarity": 0.6333
+    },
+    {
+      "a": "q02",
+      "b": "q09",
+      "similarity": 0.624
+    },
+    {
+      "a": "q10",
+      "b": "q11",
+      "similarity": 0.6144
+    },
+    {
+      "a": "q01",
+      "b": "q02",
+      "similarity": 0.6095
+    },
+    {
+      "a": "q07",
+      "b": "q12",
+      "similarity": 0.6064
+    }
+  ],
+  "cross_pair_max": 0.9442,
+  "version_pair": {
+    "pair": [
+      "q09",
+      "q10"
+    ],
+    "similarity": 0.9442
+  }
+}

@@ -1,0 +1,26 @@
+
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rahbar-config
+  namespace: rahbar
+data:
+  RETRIEVER: "chroma"
+  LLM_PROVIDER: "ollama-host"
+  EMBED_MODEL: "nomic-embed-text"
+  LLM_MODEL: "llama3.2:3b"
+  CHROMA_HOST: "chroma"
+  CHROMA_PORT: "8000"
+  CHROMA_COLLECTION: "rahbar"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  TOP_K: "5"
+  TEMPERATURE: "0.2"
+  RELEVANCE_FLOOR: "0.65"
+  CACHE_THRESHOLD: "0.88"
+  OLLAMA_URL: "http://172.18.0.1:11434"
+  CORPUS_DIR: "/corpus"
+  CHUNK_SIZE: "400"
+  CHUNK_OVERLAP: "50"
+  LOG_LEVEL: "INFO"

@@ -1,15 +1,17 @@
 # Corpus
 
-<!-- STARTER-TODO(2): fill every row, then delete this comment. -->
+Source: FAST-NUCES public website (`nu.edu.pk`), fetched reproducibly by `corpus/fetch.py` · Documents: 9 (7 PDFs, 2 HTML pages) · Pages: 281 (279 PDF pages + 2 rendered HTML pages) · 35.0 MB
 
-Source: FAST-NUCES public website / our own documents (pick one) · Documents: ? · Pages: ?
+The documents themselves live in `corpus/raw/`, which is gitignored. `corpus/sources.yaml` declares each URL, its `doc_version` and whether it is `superseded`; `corpus/MANIFEST.md` records the byte count and SHA-256 of every file, so `python corpus/fetch.py --verify` proves you have the same bytes we indexed.
 
 | # | Required property | Document(s) that provide it | Evidence or notes |
 | --- | --- | --- | --- |
-| 1 | At least 6 documents, 40 pages | | |
-| 2 | Two versions of one policy | | Which supersedes which, and how your metadata records it |
-| 3 | Scanned, image-only PDF | | `pdffonts` output, or how you proved it has no text layer |
-| 4 | A table with real information | | |
-| 5 | Long definitions | | |
-| 6 | A deliberately absent topic | | What you left out, and why a user would plausibly ask about it |
-| 7 | Exact-term content | | Clause numbers, codes, thresholds, fees |
+| 1 | At least 6 documents, 40 pages | All 9: Undergraduate Academic Rules Aug 2023 (26 pp), Academic Rules Handbook Jun 2026 (58 pp), Prospectus "Academic Rules and Regulations" (5 pp), Student Handbook Jun 2026 (64 pp), Annual Report 2019-20 (33 pp), Annual Report 2023-24 (85 pp), Faculty Entrepreneurship Policy (8 pp), plus the Fee Structure and Grading HTML pages | 281 pages total, comfortably over the 6-document / 40-page floor; every URL and SHA-256 is in `corpus/MANIFEST.md` |
+| 2 | Two versions of one policy | `undergraduate-academic-rules-aug-2023.pdf` (superseded) and `academic-rules-handbook-jun-2026.pdf` (current) — the same Undergraduate Academic Rules, revised | The 2023 rules set the withdrawal deadline at "last day of classes" (clause 4.24); the 2026 revision moved it to "last day of the makeup week" (clause 4.25). `sources.yaml` marks the old file `superseded: true`, `fetch.py` writes that into `_index.json`, and every chunk carries `doc_version` + `superseded` metadata. The retriever hides superseded chunks unless the question itself names the old version (golden questions q10/q11 test exactly that) |
+| 3 | Scanned, image-only PDF | `undergraduate-academic-rules-aug-2023.pdf` (23 of 26 pages OCR'd) and `faculty-entrepreneurship-and-technical-start-ups-policy.pdf` (8 of 8 pages OCR'd) | `pdffonts` on the 2023 rules lists only 3 embedded fonts (cover artwork: LEMONMILK, Calibri), and pdfplumber extracts 0 characters from pages 2-25 — only the cover and back page have a text layer. Both documents are recovered by tesseract OCR via `pdftoppm` (`indexer/pipeline/extract.py`); without it the 2023 half of the version pair contributes 2 chunks instead of 254 |
+| 4 | A table with real information | `fee-structure-page.html` (program-wise fee schedule), `grading-page.html` (letter code → grade point table), both annual reports (financial statements) | Extraction renders each table to Markdown rows before chunking, so columns stay in their columns (a fee row keeps its "Program / Admission Fee / Security Deposit" cells together instead of interleaving with the neighbouring column) |
+| 5 | Long definitions | Prospectus "Academic Rules and Regulations" and the Jun 2026 handbook sections — e.g. the Retake Examination policy and the Generative AI policy are multi-paragraph clauses | These are the passages a naive fixed-window splitter cuts mid-sentence; the chunker therefore starts a new chunk at every heading and packs whole sentences, so a definition never straddles two sections |
+| 6 | A deliberately absent topic | Hostel and transport rules/fees — deliberately not fetched. The prospectus download takes only the "Academic Rules and Regulations" section; the hostel pages are left out of `sources.yaml` | A user would plausibly ask "what are the hostel rules?" or "can I keep a pet in my room?" (golden q13) — and a marine-biology degree query (q14) is equally unanswerable from a computing-school corpus. Both are `must_abstain` in the golden set: the system must abstain rather than invent hostel rules that were never in the corpus |
+| 7 | Exact-term content | Clause numbers 4.24/4.25 (course withdrawal), section 7 "Awards and the Honor System", CGPA 2.00 academic-warning threshold, 100% attendance requirement, letter code A- = 3.67 grade points, fees Rs 30,000 admission / Rs 20,000 refundable security deposit / Rs 12,000 per credit hour | Exact-term questions (golden q05, q12) demand the literal figure or clause number; a retrieval miss on these is immediately visible in `eval/results.json` |
+
+**Deliberate exclusions, in one place:** the only thing we left out on purpose is the hostel/transport material (row 6), plus non-academic pages of the annual reports (director lists, photographs) that carry no answerable academic question. Nothing was dropped because it was hard — the scanned documents were recovered with OCR instead of being skipped.

@@ -1,0 +1,197 @@
+{
+  "recall_at_3": 1.0,
+  "recall_at_5": 1.0,
+  "recall_at_5_by_type": {
+    "exact": 1.0,
+    "ordinary": 1.0,
+    "version": 1.0
+  },
+  "citation_validity": 1.0,
+  "citations_total": 22,
+  "citations_valid": 22,
+  "abstention_correctness": 1.0,
+  "abstention_required": 2,
+  "abstention_correct": 2,
+  "answers_from_context": 11,
+  "answers_abstained": 5,
+  "per_question": [
+    {
+      "id": "q01",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "citation_validity": 1.0,
+      "must_abstain": false,
+      "answered_from_context": true,
+      "cached": false,
+      "seconds": 16.69
+    },
+    {
+      "id": "q02",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "citation_validity": null,
+      "must_abstain": false,
+      "answered_from_context": false,
+      "cached": false,
+      "seconds": 7.0
+    },
+    {
+      "id": "q03",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "citation_validity": 1.0,
+      "must_abstain": false,
+      "answered_from_context": true,
+      "cached": false,
+      "seconds": 11.01
+    },
+    {
+      "id": "q04",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "citation_validity": 1.0,
+      "must_abstain": false,
+      "answered_from_context": true,
+      "cached": false,
+      "seconds": 8.83
+    },
+    {
+      "id": "q06",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "citation_validity": 1.0,
+      "must_abstain": false,
+      "answered_from_context": true,
+      "cached": false,
+      "seconds": 6.03
+    },
+    {
+      "id": "q07",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "citation_validity": 1.0,
+      "must_abstain": false,
+      "answered_from_context": true,
+      "cached": false,
+      "seconds": 6.73
+    },
+    {
+      "id": "q08",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "citation_validity": 1.0,
+      "must_abstain": false,
+      "answered_from_context": true,
+      "cached": false,
+      "seconds": 5.09
+    },
+    {
+      "id": "q09",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "citation_validity": 1.0,
+      "must_abstain": false,
+      "answered_from_context": true,
+      "cached": false,
+      "seconds": 4.49
+    },
+    {
+      "id": "q16",
+      "type": "ordinary",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "citation_validity": 1.0,
+      "must_abstain": false,
+      "answered_from_context": true,
+      "cached": false,
+      "seconds": 6.4
+    },
+    {
+      "id": "q10",
+      "type": "version",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "citation_validity": 1.0,
+      "must_abstain": false,
+      "answered_from_context": true,
+      "cached": false,
+      "seconds": 5.04
+    },
+    {
+      "id": "q11",
+      "type": "version",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "citation_validity": null,
+      "must_abstain": false,
+      "answered_from_context": false,
+      "cached": false,
+      "seconds": 3.48
+    },
+    {
+      "id": "q05",
+      "type": "exact",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "citation_validity": 1.0,
+      "must_abstain": false,
+      "answered_from_context": true,
+      "cached": false,
+      "seconds": 5.03
+    },
+    {
+      "id": "q12",
+      "type": "exact",
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "citation_validity": 1.0,
+      "must_abstain": false,
+      "answered_from_context": true,
+      "cached": false,
+      "seconds": 4.9
+    },
+    {
+      "id": "q13",
+      "type": "abstain",
+      "recall_at_3": null,
+      "recall_at_5": null,
+      "citation_validity": null,
+      "must_abstain": true,
+      "answered_from_context": false,
+      "cached": false,
+      "seconds": 1.37
+    },
+    {
+      "id": "q14",
+      "type": "abstain",
+      "recall_at_3": null,
+      "recall_at_5": null,
+      "citation_validity": null,
+      "must_abstain": true,
+      "answered_from_context": false,
+      "cached": false,
+      "seconds": 1.04
+    },
+    {
+      "id": "q15",
+      "type": "injection",
+      "recall_at_3": null,
+      "recall_at_5": null,
+      "citation_validity": null,
+      "must_abstain": false,
+      "answered_from_context": false,
+      "cached": false,
+      "seconds": 1.2
+    }
+  ],
+  "golden": "D:\\University Assignments\\SCD A2\\rahbar\\eval\\golden.yaml",
+  "questions": 16
+}

@@ -1,0 +1,32 @@
+# Build context for `docker build -f indexer/Dockerfile .` — the indexer image
+# builds from the repo root so the corpus can be baked in. The api/ and ui/
+# images build from their own directories and use their own .dockerignore files.
+#
+# corpus/ is deliberately NOT ignored: the documents are the point of this
+# context (docs/PIPELINE.md, "How documents reach the indexer Job").
+.git
+.github
+.venv
+venv
+env
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.mypy_cache
+.pytest_cache
+.ruff_cache
+.coverage
+htmlcov
+node_modules
+
+# Not needed by the indexer image; keeps the context small.
+api
+ui
+docs
+eval
+k8s
+scripts
+indexer/tests
+*.md
+.env
