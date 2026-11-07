@@ -13,10 +13,13 @@ INGRESS_IP ?= $(shell minikube ip 2>/dev/null)
 HOST ?= rahbar.local
 
 .DEFAULT_GOAL := help
-.PHONY: help install test lint dev cluster images apply secret index ask fetch eval eval-fixtures check up
+.PHONY: help install test lint dev cluster images apply secret index ask fetch eval eval-fixtures check up run
 
 help: ## list the targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-14s %s\n", $$1, $$2}'
+
+run: ## run the entire stack and open port-forward with one command
+	@bash scripts/run.sh
 
 up: ## start the entire Kubernetes stack end-to-end with one command
 	@bash scripts/up.sh
