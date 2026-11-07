@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from app.routes.metrics import LATENCY, REQUESTS
+from app.routes.metrics import LATENCY
 from fastapi.testclient import TestClient
 
 
@@ -22,7 +22,7 @@ def test_metrics_endpoint_returns_prometheus_format(client: TestClient) -> None:
     assert r.status_code == 200
     assert "text/plain" in r.headers.get("content-type", "")
     assert "rahbar_requests_total" in r.text
-    assert "rahbar_request_duration_seconds" in r.text
+    assert "rahbar_request_seconds" in r.text
 
 
 def test_metrics_tracks_failed_validation_routes(client: TestClient) -> None:
@@ -34,5 +34,5 @@ def test_metrics_tracks_failed_validation_routes(client: TestClient) -> None:
 
 def test_metrics_latency_histogram_buckets() -> None:
     # Verify histogram metric configuration
-    assert LATENCY._name == "rahbar_request_duration_seconds"
+    assert LATENCY._name == "rahbar_request_seconds"
     assert "path" in LATENCY._labelnames

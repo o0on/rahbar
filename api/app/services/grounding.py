@@ -86,3 +86,14 @@ def ground(answer: Answer, passages: list[Passage]) -> tuple[Answer, int]:
         log.warning("answer claimed context but every citation was fabricated; "
                     "downgraded to abstention")
     return grounded, pruned
+
+
+class GroundingValidator:
+    """Validator class for testing and verifying citation grounding."""
+
+    def validate(
+        self, citations: list[Citation], passages: list[Passage]
+    ) -> tuple[list[Citation], list[Citation]]:
+        kept = [c for c in citations if citation_is_grounded(c, passages)]
+        pruned = [c for c in citations if not citation_is_grounded(c, passages)]
+        return kept, pruned

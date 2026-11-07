@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
 from app.schemas import Citation, Passage
 from app.services.grounding import GroundingValidator
 
