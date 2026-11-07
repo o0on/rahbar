@@ -20,16 +20,26 @@ class IndexerSettings:
     redis_port: int
 
 
+def _port(val: str | int | None, default: int) -> int:
+    if val is None or val == "":
+        return default
+    if isinstance(val, int):
+        return val
+    if "://" in str(val):
+        val = str(val).split(":")[-1]
+    return int(val)
+
+
 def get_settings() -> IndexerSettings:
     return IndexerSettings(
         embed_model=os.environ.get("EMBED_MODEL", "nomic-embed-text"),
         chroma_host=os.environ.get("CHROMA_HOST", "chroma"),
-        chroma_port=int(os.environ.get("CHROMA_PORT", 8000)),
+        chroma_port=_port(os.environ.get("CHROMA_PORT"), 8000),
         collection=os.environ.get("CHROMA_COLLECTION", "rahbar"),
         corpus_dir=os.environ.get("CORPUS_DIR", "/corpus"),
         chunk_size=int(os.environ.get("CHUNK_SIZE", 400)),
         chunk_overlap=int(os.environ.get("CHUNK_OVERLAP", 50)),
         ollama_url=os.environ.get("OLLAMA_URL", "http://host.minikube.internal:11434"),
         redis_host=os.environ.get("REDIS_HOST", "redis"),
-        redis_port=int(os.environ.get("REDIS_PORT", 6379)),
+        redis_port=_port(os.environ.get("REDIS_PORT"), 6379),
     )

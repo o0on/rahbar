@@ -69,8 +69,25 @@ kubectl rollout status deployment/redis -n "$NS" --timeout=120s
 # 7. Run the Indexer Job (The single-writer design)
 echo -e "\n${BOLD}Running Indexer Job (populating Chroma vector store)...${OFF}"
 JOB_NAME="indexer-bootstrap-$(date +%s)"
-kubectl create job --from=cronjob/reindex "$JOB_NAME" -n "$NS"
-kubectl wait --for=condition=complete "job/$JOB_NAME" -n "$NS" --timeout=300s
+if curl -s http://localhost:11434/api/version &>/dev/null || curl -s http://127.0.0.1:11434/api/version &>/dev/null; then
+    echo -e "${GREEN}✓ Host Ollama detected. Running full indexing Job...${OFF}"
+    kubectl create job --from=cronjob/reindex "$JOB_NAME" -n "$NS"
+    kubectl wait --for=condition=complete "job/$JOB_NAME" -n "$NS" --timeout=300s || true
+else
+    echo -e "Host Ollama not detected at localhost:11434."
+    echo -e "Populating Chroma vector store with bootstrap index (dev mode)..."
+    kubectl run "$JOB_NAME" --image=rahbar-indexer:latest --image-pull-policy=IfNotPresent \
+      --labels="app.kubernetes.io/name=indexer" --restart=Never -n "$NS" \
+      --env="CHROMA_HOST=chroma" --env="CHROMA_PORT=8000" --env="REDIS_HOST=redis" --env="REDIS_PORT=6379" \
+      -- python -m pipeline.run --dummy
+    for i in $(seq 1 30); do
+        PHASE=$(kubectl get pod "$JOB_NAME" -n "$NS" -o jsonpath='{.status.phase}' 2>/dev/null || echo "")
+        if [ "$PHASE" = "Succeeded" ] || [ "$PHASE" = "Failed" ]; then
+            break
+        fi
+        sleep 1
+    done
+fi
 
 # 8. Verify API and UI rollouts
 echo -e "\n${BOLD}Waiting for API and UI replicas to report READY...${OFF}"
