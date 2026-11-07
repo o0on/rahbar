@@ -4,8 +4,8 @@ metadata:
   name: rahbar-config
   namespace: rahbar
 data:
-  RETRIEVER: "stub"
-  LLM_PROVIDER: "stub"
+  RETRIEVER: "chroma"
+  LLM_PROVIDER: "ollama-host"
   EMBED_MODEL: "nomic-embed-text"
   LLM_MODEL: "llama3.2:3b"
   CHROMA_HOST: "chroma"
@@ -17,7 +17,7 @@ data:
   TEMPERATURE: "0.2"
   RELEVANCE_FLOOR: "0.65"
   CACHE_THRESHOLD: "0.88"
-  OLLAMA_URL: "http://host.minikube.internal:11434"
+  OLLAMA_URL: "http://172.18.0.1:11434"
   CORPUS_DIR: "/corpus"
   CHUNK_SIZE: "400"
   CHUNK_OVERLAP: "50"
