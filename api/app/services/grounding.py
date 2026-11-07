@@ -46,10 +46,22 @@ def section_matches(claimed: str | None, actual: str | None) -> bool:
     return left == right or left in right or right in left
 
 
+def resolve_citation(citation: Citation, passages: list[Passage]) -> Citation:
+    """If the model cited by passage index e.g. '[1]' or '1', resolve to the passage's actual source."""
+    src = (citation.source or "").strip()
+    match = re.match(r"^\[?(\d+)\]?$", src)
+    if match:
+        idx = int(match.group(1)) - 1
+        if 0 <= idx < len(passages):
+            return citation.model_copy(update={"source": passages[idx].source})
+    return citation
+
+
 def citation_is_grounded(citation: Citation, passages: list[Passage]) -> bool:
+    resolved = resolve_citation(citation, passages)
     return any(
-        citation.source == passage.source
-        and section_matches(citation.section, passage.section)
+        resolved.source == passage.source
+        and section_matches(resolved.section, passage.section)
         for passage in passages
     )
 
@@ -73,7 +85,8 @@ def abstention() -> Answer:
 def ground(answer: Answer, passages: list[Passage]) -> tuple[Answer, int]:
     """Drop citations that do not match a retrieved passage. Returns the
     grounded answer and how many citations were pruned."""
-    kept = [c for c in answer.citations if citation_is_grounded(c, passages)]
+    resolved = [resolve_citation(c, passages) for c in answer.citations]
+    kept = [c for c in resolved if citation_is_grounded(c, passages)]
     pruned = len(answer.citations) - len(kept)
     if pruned:
         log.warning("pruned fabricated citations",
@@ -94,6 +107,7 @@ class GroundingValidator:
     def validate(
         self, citations: list[Citation], passages: list[Passage]
     ) -> tuple[list[Citation], list[Citation]]:
-        kept = [c for c in citations if citation_is_grounded(c, passages)]
+        resolved = [resolve_citation(c, passages) for c in citations]
+        kept = [c for c in resolved if citation_is_grounded(c, passages)]
         pruned = [c for c in citations if not citation_is_grounded(c, passages)]
         return kept, pruned
