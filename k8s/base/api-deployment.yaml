@@ -52,25 +52,28 @@ spec:
               memory: 256Mi
             limits:
               cpu: 1000m
-              memory: 512Mi
+              memory: 1Gi
           startupProbe:
             httpGet:
               path: /healthz
               port: 8000
             failureThreshold: 30
             periodSeconds: 2
+            timeoutSeconds: 5
           livenessProbe:
             httpGet:
               path: /healthz
               port: 8000
             failureThreshold: 3
             periodSeconds: 20
+            timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /readyz
               port: 8000
-            failureThreshold: 3
+            failureThreshold: 6
             periodSeconds: 10
+            timeoutSeconds: 10
           lifecycle:
             preStop:
               exec:

@@ -51,19 +51,21 @@ spec:
               memory: 512Mi
             limits:
               cpu: 1000m
-              memory: 1Gi
+              memory: 1536Mi
           livenessProbe:
             httpGet:
               path: /api/v2/heartbeat
               port: 8000
-            failureThreshold: 3
+            failureThreshold: 6
             periodSeconds: 20
+            timeoutSeconds: 10
           readinessProbe:
             httpGet:
               path: /api/v2/heartbeat
               port: 8000
-            failureThreshold: 3
+            failureThreshold: 6
             periodSeconds: 10
+            timeoutSeconds: 10
           volumeMounts:
             - name: chroma-data
               mountPath: /data
