@@ -23,6 +23,19 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     exit 0
 fi
 
+# 0. Ensure Ollama daemon is running on host from this drive
+if ! curl -s http://127.0.0.1:11434/api/version &>/dev/null; then
+    OLLAMA_BIN="/mnt/data/scd assignment2/ollama/bin/ollama"
+    if [ -x "$OLLAMA_BIN" ]; then
+        echo -e "${YELLOW}Starting in-drive Ollama daemon in background...${OFF}"
+        HOME="/mnt/data/scd assignment2/ollama" \
+        OLLAMA_HOST="0.0.0.0:11434" \
+        OLLAMA_MODELS="/mnt/data/scd assignment2/ollama/models" \
+        nohup "$OLLAMA_BIN" serve >/dev/null 2>&1 &
+        sleep 2
+    fi
+fi
+
 # 1. Run bootstrap and cluster deployment
 bash scripts/up.sh
 
