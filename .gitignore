@@ -24,6 +24,10 @@ venv/
 *.log
 .DS_Store
 
+# A3 data PVC contents (the lake/quarantine/archive live on the cluster volume;
+# verification reports and trace samples are committed under eval/results/ and traces/)
+data/
+
 # Coverage data from local runs
 .coverage
 htmlcov/

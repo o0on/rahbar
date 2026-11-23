@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import logging
 import time
+from typing import Any
 
 from fastapi import HTTPException
 
@@ -28,6 +29,7 @@ from ..retrieval.base import Retriever
 from ..routes.metrics import (ABSTENTIONS, CACHE, CITATIONS_PRUNED, FALLBACKS,
                               GENERATION, RETRIEVAL)
 from ..schemas import AskResponse, Passage, RetrievedRef
+from ..tracing import TraceWriter, finish_trace, new_trace, retrieval_rail
 from .cache import SemanticCache, is_followup, is_version_question, should_cache
 from .grounding import abstention, below_floor, ground
 
@@ -48,8 +50,19 @@ def answer_question(
     provider: LLMProvider,
     settings: Settings,
     cache: SemanticCache | None = None,
+    trace: dict[str, Any] | None = None,
+    trace_writer: TraceWriter | None = None,
 ) -> AskResponse:
     request_id = request_id_var.get()
+    started_total = time.perf_counter()
+    if trace is None:
+        trace = {}
+    if not trace:                      # the route hands us an empty dict to fill
+        trace.update(new_trace(question, settings,
+                               trace_id=request_id if request_id != "-" else None))
+    guardrail_actions: list[dict[str, Any]] = []
+    latency_ms: dict[str, float] = {}
+    filters: dict[str, Any] = {"top_k": settings.top_k, "superseded": "excluded"}
     # Follow-ups only make sense in their conversation; version questions
     # would be served (or would serve) a cached twin about the OTHER policy
     # version - measured at 0.9442 cosine, above the 0.88 threshold (3.3).
@@ -78,6 +91,19 @@ def answer_question(
             if hit:
                 log.info("cache hit", extra={"top_k": settings.top_k,
                                              "chunk_ids": [r.chunk_id for r in hit.retrieved]})
+                # The cached response has no stored passage text; the trace says
+                # so explicitly instead of pretending to rebuild the old prompt.
+                cached_passages = [
+                    Passage(chunk_id=r.chunk_id, text="(cached answer: evidence not re-read)",
+                            source=r.source, section=r.section, page=r.page, score=r.score)
+                    for r in hit.retrieved
+                ]
+                latency_ms["total_ms"] = (time.perf_counter() - started_total) * 1000
+                finish_trace(trace, question=question, passages=cached_passages,
+                             response=hit, cache_hit=True,
+                             guardrail_actions=[{"type": "cache_hit",
+                                                 "action": "answer reused, no retrieval"}],
+                             latency_ms=latency_ms, filters=filters, writer=trace_writer)
                 return hit.model_copy(update={"request_id": request_id, "cached": True})
 
     # 3./4. Embed (inside the retriever, same pinned model) and retrieve with
@@ -99,6 +125,12 @@ def answer_question(
                             ) from exc
     retrieval_seconds = time.perf_counter() - retrieval_started
     RETRIEVAL.observe(retrieval_seconds)
+    latency_ms["retrieval_ms"] = retrieval_seconds * 1000
+
+    # D4: retrieval rail. Instructions hidden in a chunk (or in the question)
+    # are data, never commands. Dropped chunks are recorded in the trace.
+    passages, injection_actions = retrieval_rail(passages, question)
+    guardrail_actions.extend(injection_actions)
 
     # 3.4 relevance floor: nothing close enough means an honest abstention,
     # decided here so a question the corpus cannot answer never reaches the
@@ -118,6 +150,10 @@ def answer_question(
             "answered_from_context": False, "abstention": "relevance_floor",
             "retrieval_ms": round(retrieval_seconds * 1000, 1),
         })
+        latency_ms["total_ms"] = (time.perf_counter() - started_total) * 1000
+        finish_trace(trace, question=question, passages=passages, response=response,
+                     cache_hit=False, guardrail_actions=guardrail_actions,
+                     latency_ms=latency_ms, filters=filters, writer=trace_writer)
         return response
 
     # 5./6./7. Generate: the provider builds the augmented prompt, requests
@@ -126,11 +162,16 @@ def answer_question(
     answer = provider.generate(question, passages)
     generation_seconds = time.perf_counter() - started
     GENERATION.observe(generation_seconds)
+    latency_ms["generation_ms"] = generation_seconds * 1000
 
     # Citation check: every citation must match a retrieved passage (3.4).
+    grounding_started = time.perf_counter()
     answer, pruned = ground(answer, passages)
+    latency_ms["grounding_ms"] = (time.perf_counter() - grounding_started) * 1000
     if pruned:
         CITATIONS_PRUNED.inc(pruned)
+        guardrail_actions.append({"type": "citation_guardrail",
+                                  "action": f"pruned {pruned} ungrounded citation(s)"})
     fallback_used = is_fallback(answer)
     if fallback_used:
         FALLBACKS.inc()
@@ -169,4 +210,11 @@ def answer_question(
         "generation_ms": round(generation_seconds * 1000, 1),
         "cache": "bypass" if bypassed else "miss",
     })
+    latency_ms["total_ms"] = (time.perf_counter() - started_total) * 1000
+    if bypassed:
+        guardrail_actions.append({"type": "cache_bypass",
+                                  "action": "follow-up/version question; cache skipped"})
+    finish_trace(trace, question=question, passages=passages, response=response,
+                 cache_hit=False, guardrail_actions=guardrail_actions,
+                 latency_ms=latency_ms, filters=filters, writer=trace_writer)
     return response

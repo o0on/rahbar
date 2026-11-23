@@ -12,6 +12,7 @@ resources:
   - api-deployment.yaml
   - ui-deployment.yaml
   - chroma-statefulset.yaml
+  - data-pvc.yaml
   - redis-deployment.yaml
   - indexer-job.yaml
   - reindex-cronjob.yaml

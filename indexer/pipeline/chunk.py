@@ -222,6 +222,7 @@ def _emit(doc: Document, run: list[Unit], section: str, size: int, overlap: int,
             page=piece_page,
             doc_version=doc.doc_version,
             superseded=doc.superseded,
+            doc_id=doc.doc_id,
         ))
         index += 1
     return chunks, index
