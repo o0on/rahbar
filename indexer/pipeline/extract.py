@@ -168,29 +168,14 @@ def _ocr_pages(path: Path, numbers: list[int]) -> dict[int, str]:
     from pdf2image import convert_from_path
 
     out: dict[int, str] = {}
-    numbers = sorted(numbers)
-    start = previous = numbers[0]
-    runs = []
-    for number in numbers[1:]:
-        if number == previous + 1:
-            previous = number
-        else:
-            runs.append((start, previous))
-            start = previous = number
-    runs.append((start, previous))
-
-    for first, last in runs:
+    for page_number in sorted(numbers):
         try:
-            images = convert_from_path(str(path), dpi=OCR_DPI, first_page=first, last_page=last)
+            images = convert_from_path(str(path), dpi=OCR_DPI, first_page=page_number, last_page=page_number)
+            if images:
+                out[page_number] = pytesseract.image_to_string(images[0])
+                del images
         except Exception as exc:
-            log("OCR conversion failed", source=path.name, first=first, last=last, error=str(exc))
-            continue
-        for offset, image in enumerate(images):
-            page_number = first + offset
-            try:
-                out[page_number] = pytesseract.image_to_string(image)
-            except Exception as exc:
-                log("OCR failed", source=path.name, page=page_number, error=str(exc))
+            log("OCR failed", source=path.name, page=page_number, error=str(exc))
     log("OCR finished", source=path.name, pages=len(out))
     return out
 

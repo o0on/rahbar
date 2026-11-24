@@ -12,7 +12,12 @@ from dataclasses import dataclass, field
 
 
 def _int(name: str, default: int) -> int:
-    return int(os.environ.get(name, default))
+    val = os.environ.get(name, default)
+    if isinstance(val, int):
+        return val
+    if "://" in str(val):
+        val = str(val).split(":")[-1]
+    return int(val)
 
 
 def _float(name: str, default: float) -> float:
