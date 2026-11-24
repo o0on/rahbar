@@ -189,10 +189,10 @@ para("Trace fields present: trace_id, timestamp, query, rewritten_query, embeddi
 table(
     ["Metric (D3)", "Value over window", "Source"],
     [
-        ["top-1 similarity distribution", "min 0.5941, mean 0.7712, p50 0.7789, p95 0.8372 (6 traces / 24 h)", "traces/trace.jsonl -> eval/results/trace-summary.json"],
-        ["abstention rate", "0.1667 (1 of 6 queries)", "eval/results/trace-summary.json"],
-        ["cache hit rate", "0.1667 (1 of 6 queries)", "eval/results/trace-summary.json"],
-        ["p95 latency per stage", "generation 0.65 ms, grounding 0.13 ms, retrieval 33.62 ms, total 345.77 ms", "eval/results/trace-summary.json"],
+        ["top-1 similarity distribution", "min 0.5941, mean 0.7852, p50 0.8348, p95 0.8688 (7 traces / 24 h)", "traces/trace.jsonl -> eval/results/trace-summary.json"],
+        ["abstention rate", "0.1429 (1 of 7 queries)", "eval/results/trace-summary.json"],
+        ["cache hit rate", "0.1429 (1 of 7 queries)", "eval/results/trace-summary.json"],
+        ["p95 latency per stage", "generation 3.05 ms, grounding 1.86 ms, retrieval 225.64 ms, total 8727.88 ms (one cold-query outlier; the other six are 50–346 ms)", "eval/results/trace-summary.json"],
         ["injection attempts flagged (D4)", "1 query, 2 chunks dropped", "trace 4337e509dfb04defb00d6d1a5bad707a"],
     ],
     [2.6, 1.8, 2.5],
