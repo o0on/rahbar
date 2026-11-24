@@ -161,3 +161,54 @@ External university PDF documents are not tracked directly in Git history. Run t
 python corpus/fetch.py
 ```
 This verifies document SHA-256 checksums recorded in `corpus/MANIFEST.md`.
+
+---
+
+## Assignment 03 — exact commands (A, D, F data plane)
+
+The A3 demo runs on a local `kind` cluster (context `kind-rahbar`), not
+Docker-only. Full walkthrough, screenshot timing and result locations are in
+`docs/A3-ASHAR-COMMANDS.md`. Parts B, C, E and the release side of F are owned
+by Aun (`docs/A3-WORK-SPLIT.md`); their exact commands belong in this section.
+
+### A — data management
+
+```bash
+# First build (Batch A), then A1 verification of Batch B:
+kubectl -n rahbar create job --from=cronjob/reindex ingest-batch-a
+kubectl -n rahbar wait --for=condition=complete job/ingest-batch-a --timeout=900s
+kubectl apply -f k8s/jobs/verify-batch-b.yaml
+kubectl -n rahbar logs -f job/a3-verify-batch-b
+
+# First Batch B ingest, then the identical re-ingest:
+kubectl apply -f k8s/jobs/ingest-batch-b.yaml
+kubectl -n rahbar wait --for=condition=complete job/a3-ingest-batch-b --timeout=600s
+kubectl apply -f k8s/jobs/ingest-batch-b-unchanged.yaml
+kubectl -n rahbar logs -f job/a3-ingest-batch-b-unchanged
+# expected: INCREMENTAL RESULT  chunks_embedded=0  chunks_reused=93
+```
+
+### D — tracing and observability
+
+```bash
+kubectl -n rahbar port-forward svc/api 8000:8000
+curl -s -i -X POST http://127.0.0.1:8000/api/ask \
+  -H 'Content-Type: application/json' \
+  -d '{"question":"What is the academic probation rule?"}'
+# copy the x-trace-id header, then:
+POD=$(kubectl -n rahbar get pods -l app.kubernetes.io/name=api -o jsonpath='{.items[0].metadata.name}')
+kubectl -n rahbar cp ${POD}:/data/traces/trace.jsonl traces/trace.jsonl
+python scripts/trace_tool.py <TRACE_ID> --path traces/trace.jsonl
+python scripts/trace_summary.py --hours 24 --path traces/trace.jsonl
+```
+
+### F — data plane (Ashar's manifests)
+
+```bash
+kubectl -n rahbar get all,pvc,configmap,cronjob,job
+kubectl -n rahbar get deploy api -o yaml | grep -A3 -E 'data|mountPath|claimName'
+```
+
+Result files: `eval/results/verify/*.json`, `eval/results/trace-summary.json`,
+`traces/trace.jsonl`. Screenshots: `report/screenshots/`, pasted into the
+Appendix of `report/A3-Report-Template.docx`.
