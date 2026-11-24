@@ -100,13 +100,13 @@ para("Map every stage of the paper's Figure 3 to our implementation. Be explicit
 table(
     ["Figure 3 stage", "What our pipeline does", "File / K8s object", "What is missing"],
     [
-        ["Ingest", "<TODO: batch + CronJob>", "<TODO>", "<TODO>"],
-        ["Verify", "<TODO: 4 checks + quarantine>", "<TODO>", "<TODO>"],
-        ["Update data lake", "<TODO: versioned lake + archive>", "<TODO>", "<TODO>"],
-        ["Update retrieval sources", "<TODO: incremental chunks, superseded filter>", "<TODO>", "<TODO>"],
-        ["Offline testing", "<TODO: module / component / e2e + gate>", "<TODO>", "<TODO>"],
-        ["Live testing", "<TODO: canary + traces + metrics>", "<TODO>", "<TODO>"],
-        ["Check coverage", "<TODO: live log vs golden + threshold>", "<TODO>", "<TODO>"],
+        ["Ingest", "Batch A CronJob reindex plus explicit Batch B Jobs; corpora baked into the indexer image at /corpus and /corpus/batch_b", "reindex-cronjob.yaml, jobs/verify-batch-b.yaml, jobs/ingest-batch-b.yaml", "Batch B is a manual demo Job, not a schedule"],
+        ["Verify", "Four checks (quality, completeness, recency, uniqueness) with a reason per failure; 12 Batch B sources -> 7 index, 5 quarantine", "indexer/pipeline/verify.py, eval/results/verify/", "No human sign-off on quarantined files"],
+        ["Update data lake", "Versioned active bytes, quarantine and archive on the /data PVC; archive is a metadata-only version flip", "indexer/pipeline/lake.py, data-pvc.yaml", "No retention/compaction policy for old versions"],
+        ["Update retrieval sources", "Incremental sync: 93 embedded, 93 reused, 389 pruned on the first Batch B run; 0 embedded on the identical rerun; superseded rows filtered at query time", "indexer/pipeline/store.py, api/app/retriever.py", "No cross-version reranking"],
+        ["Offline testing", "Module / component / e2e evaluation Jobs and the release gate (owner: Aun, Part B/C)", "eval/run_eval.py, k8s/jobs (Aun)", "LLM-judge/human agreement not yet measured"],
+        ["Live testing", "Canary rollout plus one JSON trace line per query, with latency and guardrail fields", "api/app/tracing.py, k8s/overlays (Aun)", "No automated alerting on the trace rail"],
+        ["Check coverage", "Live query log compared with the golden set and a threshold (owner: Aun, Part E)", "eval/golden.yaml, scripts (Aun)", "Coverage measured offline, not continuously in-cluster"],
     ],
     [1.3, 2.5, 1.7, 1.4],
 )
@@ -132,21 +132,29 @@ doc.add_heading("A. Data management", level=2)
 para("A1 verification — Batch B (one row per document; pass/fail + reason for each check):")
 table(
     ["Document", "Quality", "Completeness", "Recency", "Uniqueness", "Action"],
-    [["<TODO>", "<TODO>", "<TODO>", "<TODO>", "<TODO>", "<TODO>"] for _ in range(3)],
+    [
+        ["student-services-guide.md", "PASS", "PASS", "PASS", "PASS", "INDEX"],
+        ["student-services-guide-copy-a.md", "PASS", "PASS", "PASS", "FAIL: exact sha256 3fc17d0685bd", "QUARANTINE"],
+        ["library-services-guide-near.md", "PASS", "PASS", "PASS", "FAIL: cosine 0.999 >= 0.92", "QUARANTINE"],
+        ["lab-safety-manual-truncated.md", "PASS", "FAIL: 1 of 4 pages", "PASS", "PASS", "QUARANTINE"],
+        ["scholarship-policy-missing-meta.md", "PASS", "FAIL: no title", "PASS", "PASS", "QUARANTINE"],
+        ["academic-rules-handbook-nov-2026.md", "PASS", "PASS", "PASS", "PASS", "INDEX"],
+    ],
     [1.4, 1.1, 1.2, 1.0, 1.2, 1.0],
 )
 para("A2 incremental update (counts from the runs, not estimates):")
 table(
     ["Run", "Docs in", "Chunks embedded", "Chunks removed", "Archive / rollback"],
     [
-        ["unchanged re-ingest", "<TODO>", "0", "<TODO>", "<TODO>"],
-        ["changed document", "<TODO>", "<TODO>", "<TODO>", "<TODO>"],
-        ["deleted document", "<TODO>", "<TODO>", "<TODO>", "<TODO>"],
-        ["superseded + rollback", "<TODO>", "<TODO>", "<TODO>", "<TODO>"],
+        ["Batch A first build", "9 (7 indexed)", "389", "0", "1 archived (2023-08 handbook), 1 quarantined (near-dup report)"],
+        ["first Batch B ingest", "12 (7 indexed)", "93", "389", "0 archived, 5 quarantined"],
+        ["unchanged re-ingest", "12 (7 indexed)", "0", "0", "0 archived, 5 quarantined; 93 rows reused"],
+        ["deleted document", "6 removed from corpus", "0", "291", "chunks removed with no orphan rows"],
+        ["superseded + rollback", "newer 2026-11 handbook", "12", "98 old-version rows", "metadata-only rollback implemented; not exercised in this run"],
     ],
     [1.6, 1.0, 1.4, 1.3, 1.6],
 )
-para("Batch B planted problems: 2 exact duplicates, 1 near-duplicate, 1 corrupt/truncated, 1 missing metadata, 1 newer version, 1 injected instruction. Detection rate: <TODO>/7.")
+para("Batch B planted problems: 2 exact duplicates, 1 near-duplicate, 1 corrupt/truncated, 1 missing metadata, 1 newer version, 1 injected instruction. Verification caught 6/7 (the injected instruction is a valid document); the query-time guardrail dropped its 2 injection chunks (trace 4337e509dfb04defb00d6d1a5bad707a), so 7/7 were caught across the two stages.")
 
 doc.add_heading("B. Offline testing at three levels", level=2)
 para("Golden set: <TODO> total — <TODO> answerable, <TODO> unanswerable, <TODO> hard; <TODO> hand-written, <TODO> synthetic hand-reviewed.")
@@ -177,20 +185,19 @@ table(
 para("Rejected candidate: <TODO>. Released candidate: <TODO>. Justification for each threshold: <TODO>")
 
 doc.add_heading("D. Observability and traceability", level=2)
-para("Trace fields (D1) present: <TODO — tick every required field>. Trace ID used in the appendix: <TODO>")
+para("Trace fields present: trace_id, timestamp, query, rewritten_query, embedding model/version, collection, retrieved chunk ids and scores, filters, reranked order, prompt_hash, exact prompt messages and context text, model + parameters, response, citations, guardrail_actions, per-stage latency, cache_hit. Trace ID used in the appendix: see Appendix D1/D2 (rebuild with scripts/trace_tool.py).")
 table(
     ["Metric (D3)", "Value over window", "Source"],
     [
-        ["top-1 similarity distribution", "<TODO>", "<TODO>"],
-        ["abstention rate", "<TODO>", "<TODO>"],
-        ["cache hit rate", "<TODO>", "<TODO>"],
-        ["p95 latency per stage", "<TODO>", "<TODO>"],
-        ["injection attempts flagged (D4)", "<TODO>", "<TODO>"],
+        ["top-1 similarity distribution", "min 0.5941, mean 0.7712, p50 0.7789, p95 0.8372 (6 traces / 24 h)", "traces/trace.jsonl -> eval/results/trace-summary.json"],
+        ["abstention rate", "0.1667 (1 of 6 queries)", "eval/results/trace-summary.json"],
+        ["cache hit rate", "0.1667 (1 of 6 queries)", "eval/results/trace-summary.json"],
+        ["p95 latency per stage", "generation 0.65 ms, grounding 0.13 ms, retrieval 33.62 ms, total 345.77 ms", "eval/results/trace-summary.json"],
+        ["injection attempts flagged (D4)", "1 query, 2 chunks dropped", "trace 4337e509dfb04defb00d6d1a5bad707a"],
     ],
     [2.6, 1.8, 2.5],
 )
-para("D5 root cause from the trace only (5 lines):")
-todo(5)
+para("D5 root cause from the trace only: the query asking about the retrieval-system note retrieved exam-conduct-injected-p001-0009/0010; both passages matched the injection pattern, guardrail_actions records chunk_dropped for each, and the answer was an abstention rather than a leaked system prompt. The injected text was data in the corpus, not a user instruction, so the fix belongs in the retrieval/grounding rail, not in the model prompt alone.")
 
 doc.add_heading("E. Drift and coverage", level=2)
 table(
@@ -207,15 +214,15 @@ doc.add_heading("F. Kubernetes run", level=2)
 table(
     ["K8s object", "RAGOps responsibility", "Requests / limits (measured)"],
     [
-        ["API Deployment", "<TODO>", "<TODO>"],
-        ["Chroma StatefulSet + PVC", "<TODO>", "<TODO>"],
-        ["Ingestion Job + CronJob", "<TODO>", "<TODO>"],
-        ["Eval Job + ConfigMap", "<TODO>", "<TODO>"],
-        ["Candidate Deployment + Service", "<TODO>", "<TODO>"],
+        ["API Deployment", "Read-only RAG service; writes one JSON trace line per query to the /data PVC", "requests 200m / 256Mi, limits 1000m / 512Mi; 1 replica locally (HPA min 3 kept in the manifest)"],
+        ["Chroma StatefulSet + PVC", "Vector store; only the ingestion Job writes to it", "requests 250m / 512Mi, limits 1000m / 1Gi; 5Gi PVC"],
+        ["Ingestion Job + CronJob", "Sole writer to Chroma: verify, lake state, embed, sync, invalidate Redis cache", "requests 500m / 1Gi, limits 1500m / 3Gi (raised after an OOMKill at 1536Mi)"],
+        ["Eval Job + ConfigMap", "Offline evaluation and the pins the gate compares (owner: Aun)", "ConfigMap rahbar-config: 22 keys including EMBED_VERSION=v1, NEAR_DUP_THRESHOLD=0.92"],
+        ["Candidate Deployment + Service", "Rollout / undo of the release candidate (owner: Aun)", "Service api 8000/TCP; canary manifests in k8s/overlays"],
     ],
     [2.0, 2.7, 2.2],
 )
-para("Fresh-cluster commands: see k8s/README.md. Rollout / undo evidence: <TODO>")
+para("Fresh-cluster commands: docs/A3-ASHAR-COMMANDS.md and k8s/README.md. Rollout / undo evidence: Appendix F2/F3 (Aun); F1 shows the namespace state captured on the local kind cluster.")
 
 # ---------------------------------------------------------------- 4
 doc.add_heading("4. Short answers", level=1)
@@ -228,7 +235,14 @@ for label, question in [
     ("(f)", "Which Kubernetes object carries which RAGOps responsibility (e.g. the single writer to the vector store)?"),
 ]:
     para(f"{label} {question}", bold=True)
-    todo(2)
+    if label == "(a)":
+        para("Uniqueness caught the most: 3 of 7 planted problems (2 exact sha256 copies and 1 cosine-0.999 near-copy), ahead of completeness (truncated file, missing title) and recency (older handbook version). The injected instruction passed all four source checks because the document is otherwise well formed; the query-time guardrail caught it (2 chunks dropped, trace 4337e509dfb04defb00d6d1a5bad707a). A source-only scanner for injection phrases would catch it at verification time too.")
+    elif label == "(c)":
+        para("We archive, we do not delete: the superseded 2023-08 handbook was moved to /data/archive and the 2026-11 Batch B replacement keeps the older rows flagged superseded until the metadata-only rollback flips them. Deleting old versions destroys provenance, makes rollback impossible, breaks citations to any in-flight answer, and turns a bad new version into an unrecoverable incident.")
+    elif label == "(f)":
+        para("The ingestion Job and its CronJob are the only writers to Chroma (indexer/pipeline/store.py); the API Deployment only reads the collection. The rahbar-data PVC carries the lake, quarantine, archive, verification reports and trace lines; the rahbar-config ConfigMap carries the pins (EMBED_VERSION, NEAR_DUP_THRESHOLD, collection, top-k). Services/Ingress provide the stable endpoint, and the Deployment/HPA/candidate objects carry the release responsibilities owned by Aun.")
+    else:
+        todo(2)
 
 # ---------------------------------------------------------------- 5
 doc.add_heading("5. Contributions and AI statement", level=1)
