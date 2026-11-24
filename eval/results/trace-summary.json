@@ -1,0 +1,21 @@
+{
+  "traces": 4,
+  "top1_similarity": {
+    "min": 0.7789,
+    "mean": 0.8214,
+    "p50": 0.8348,
+    "p95": 0.8372
+  },
+  "abstention_rate": 0.0,
+  "cache_hit_rate": 0.25,
+  "p95_latency_ms_per_stage": {
+    "generation_ms": 0.65,
+    "grounding_ms": 0.1,
+    "retrieval_ms": 33.62,
+    "total_ms": 345.77
+  },
+  "p95_total_ms": 345.77,
+  "injection_attempts_flagged": 0,
+  "window_hours": 24.0,
+  "source": "traces/trace.jsonl"
+}

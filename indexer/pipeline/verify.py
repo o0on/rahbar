@@ -261,6 +261,9 @@ def verify(prepared: list[Prepared], settings: IndexerSettings,
             first = seen_hashes[src.sha256].source
             uniqueness = Check(False, f"exact duplicate of {first.path.name} (sha256 {src.sha256[:12]})")
         elif src.path.name in skip_embed:
+            # Keep its bytes in the hash map: an unchanged original must still
+            # catch a later exact copy on a subsequent incremental run.
+            seen_hashes[src.sha256] = item
             uniqueness = Check(True, "unchanged sha256; prior near-duplicate verdict still stands")
         else:
             seen_hashes[src.sha256] = item
@@ -279,14 +282,17 @@ def verify(prepared: list[Prepared], settings: IndexerSettings,
             log("verification failed", source=src.path.name, action=item.action,
                 checks=failed, reasons=[item.checks[name].reason for name in failed])
 
-    # Near-duplicates are checked against documents that passed uniqueness so
-    # far. One embedding request for the whole corpus, not one per comparison.
-    candidates = [item for item in prepared if item.action in {"index", "archive"} and
-                  item.source.path.name not in skip_embed and item.sample]
+    # Near-duplicates are checked against every document still indexed, including
+    # unchanged ones: a new near-copy of an old document is still a duplicate.
+    # One embedding request for the whole set, not one per comparison. Unchanged
+    # files keep their earlier verdict; only new candidates can be reclassified.
+    candidates = [item for item in prepared if item.action in {"index", "archive"} and item.sample]
     if len(candidates) > 1:
         vectors = embedder([item.sample for item in candidates])
     if len(candidates) > 1 and len(vectors) == len(candidates):
         for i, item in enumerate(candidates):
+            if item.source.path.name in skip_embed:
+                continue
             for j, earlier in enumerate(candidates[:i]):
                 score = cosine(vectors[i], vectors[j])
                 if score >= settings.near_dup_threshold:
