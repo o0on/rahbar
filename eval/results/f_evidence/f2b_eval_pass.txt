@@ -1,0 +1,10 @@
+=== F2b: EVAL JOB PASS ===
+========================================================================
+IN-CLUSTER EVAL JOB GATE  (target=http://api:8000)
+  recall@5             value=1.0        rule=>= 0.9274          PASS
+  faithfulness         value=1.0        rule=>= 0.80            PASS
+  abstention           value=1.0        rule=>= 1.00            PASS
+  citation_validity    value=1.0        rule=>= 0.95            PASS
+  p95_ms               value=236.68     rule=<= 30000.0         PASS
+DECISION: GATE PASS
+========================================================================

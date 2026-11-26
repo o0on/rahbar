@@ -126,6 +126,9 @@ spec:
               app.kubernetes.io/name: api
         - podSelector:
             matchLabels:
+              app.kubernetes.io/name: api-candidate
+        - podSelector:
+            matchLabels:
               app.kubernetes.io/name: indexer
       ports:
         - protocol: TCP
@@ -147,6 +150,9 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: api
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: api-candidate
         # the indexer rewrites the cache generation after each re-index
         # (pipeline/store.py); without this rule every Job run fails on
         # "Timeout connecting to server" even though Redis is healthy.
@@ -216,6 +222,9 @@ spec:
               app.kubernetes.io/name: api
         - podSelector:
             matchLabels:
+              app.kubernetes.io/name: api-candidate
+        - podSelector:
+            matchLabels:
               app.kubernetes.io/name: indexer
       ports:
         - protocol: TCP
@@ -228,3 +237,64 @@ spec:
       ports:
         - protocol: TCP
           port: 443
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-candidate
+  namespace: rahbar
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: api-candidate
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 8000
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: chroma
+      ports:
+        - protocol: TCP
+          port: 8000
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 11434
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-eval-job
+  namespace: rahbar
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: eval-job
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: api
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: api-candidate
+      ports:
+        - protocol: TCP
+          port: 8000

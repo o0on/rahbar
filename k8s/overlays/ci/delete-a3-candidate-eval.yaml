@@ -1,0 +1,13 @@
+$patch: delete
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-candidate
+  namespace: rahbar
+---
+$patch: delete
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rahbar-eval
+  namespace: rahbar
