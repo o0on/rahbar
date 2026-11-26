@@ -1,0 +1,25 @@
+{"ts": "2026-11-26T14:50:32Z", "logger": "rahbar.indexer", "msg": "embedded", "model": "nomic-embed-text", "vectors": 100, "dimension": 768, "seconds": 3.3}
+{"ts": "2026-11-26T14:50:32Z", "logger": "rahbar.indexer", "msg": "chunked", "source": "annual-report-2019-20.pdf", "doc_id": "annual-report-2019-20", "chunks": 73}
+{"ts": "2026-11-26T14:50:34Z", "logger": "rahbar.indexer", "msg": "embedded", "model": "nomic-embed-text", "vectors": 73, "dimension": 768, "seconds": 2.4}
+{"ts": "2026-11-26T14:50:34Z", "logger": "rahbar.indexer", "msg": "chunked", "source": "fee-structure-page.html", "doc_id": "fee-structure-page", "chunks": 27}
+{"ts": "2026-11-26T14:50:35Z", "logger": "rahbar.indexer", "msg": "embedded", "model": "nomic-embed-text", "vectors": 27, "dimension": 768, "seconds": 0.7}
+{"ts": "2026-11-26T14:50:35Z", "logger": "rahbar.indexer", "msg": "chunked", "source": "grading-page.html", "doc_id": "grading-page", "chunks": 15}
+{"ts": "2026-11-26T14:50:35Z", "logger": "rahbar.indexer", "msg": "embedded", "model": "nomic-embed-text", "vectors": 15, "dimension": 768, "seconds": 0.4}
+{"ts": "2026-11-26T14:50:35Z", "logger": "rahbar.indexer", "msg": "chunked", "source": "faculty-entrepreneurship-and-technical-start-ups-policy.pdf", "doc_id": "faculty-entrepreneurship-and-technical-start-ups-policy", "chunks": 37}
+{"ts": "2026-11-26T14:50:36Z", "logger": "rahbar.indexer", "msg": "embedded", "model": "nomic-embed-text", "vectors": 37, "dimension": 768, "seconds": 1.1}
+{"ts": "2026-11-26T14:50:41Z", "logger": "rahbar.indexer", "msg": "semantic cache invalidated", "generation": "704578c404a6424d87b2d5225815e9b6"}
+{"ts": "2026-11-26T14:50:41Z", "logger": "rahbar.indexer", "msg": "incremental sync written", "embedded": 389, "reused": 0, "deleted": 0, "superseded": 0, "total": 804, "seconds": 5.2}
+DOC_ID                                    TOTAL  ACTIVE  SUPERSEDED
+(no doc_id)                                 415     161         254
+academic-rules-handbook                      98      98           0
+annual-report-2019-20                        73      73           0
+faculty-entrepreneurship-and-technical-s     37      37           0
+fee-structure-page                           27      27           0
+grading-page                                 15      15           0
+prospectus-2026-academic-rules-and-regul     39      39           0
+student-handbook                            100     100           0
+TOTAL 804 rows across 8 document ids
+{"ts": "2026-11-26T14:50:41Z", "logger": "rahbar.indexer", "msg": "A2 incremental summary", "embedded": 389, "reused": 0, "deleted": 0, "superseded": 0, "archived": 1, "quarantined": 1, "total": 804}
+INCREMENTAL RESULT  chunks_embedded=389  chunks_reused=0  chunks_deleted=0  rows_superseded=0
+LIFECYCLE  archived=1  quarantined=1  archived_docs=undergraduate-academic-rules@2023-08
+{"ts": "2026-11-26T14:50:41Z", "logger": "rahbar.indexer", "msg": "indexer finished", "chunks": 804, "seconds": 561.8}

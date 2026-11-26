@@ -1,0 +1,69 @@
+NAME                                     READY   STATUS        RESTARTS         AGE
+pod/api-candidate-659bf465d4-j5qt9       1/1     Terminating   0                16s
+pod/api-candidate-dfc7fd45c-tjnbv        1/1     Terminating   0                5m45s
+pod/api-candidate-dfc7fd45c-tt9qt        1/1     Running       0                9s
+pod/api-ddf8b5d4c-dvptb                  1/1     Running       0                5m27s
+pod/api-ddf8b5d4c-p2cvn                  1/1     Running       0                5m34s
+pod/api-ddf8b5d4c-p7tx2                  1/1     Running       0                5m45s
+pod/chroma-0                             1/1     Running       105 (177m ago)   18d
+pod/full-index-job-5gcpd                 0/1     Completed     0                19d
+pod/indexer-bootstrap-1794047057         0/1     Completed     0                19d
+pod/indexer-bootstrap-1794047238         0/1     Completed     0                19d
+pod/indexer-bootstrap-1794050264-rbfd5   0/1     Completed     0                19d
+pod/indexer-l6h5k                        1/1     Running       0                5m44s
+pod/rahbar-eval-pn4pf                    0/1     Error         0                31s
+pod/redis-6d7666dbcb-hlfng               1/1     Running       12 (4h26m ago)   19d
+pod/ui-7889d7c478-kb8br                  1/1     Running       12 (4h26m ago)   19d
+
+NAME                    TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+service/api             ClusterIP   10.96.17.220   <none>        8000/TCP   19d
+service/api-candidate   ClusterIP   10.96.166.85   <none>        8000/TCP   5m46s
+service/chroma          ClusterIP   10.96.34.23    <none>        8000/TCP   19d
+service/redis           ClusterIP   10.96.41.168   <none>        6379/TCP   19d
+service/ui              ClusterIP   10.96.201.68   <none>        8080/TCP   19d
+
+NAME                            READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/api             3/3     3            3           19d
+deployment.apps/api-candidate   1/1     1            1           5m45s
+deployment.apps/redis           1/1     1            1           19d
+deployment.apps/ui              1/1     1            1           19d
+
+NAME                                       DESIRED   CURRENT   READY   AGE
+replicaset.apps/api-68b9745d8d             0         0         0       18d
+replicaset.apps/api-6d9579d8c4             0         0         0       19d
+replicaset.apps/api-794f7c9bd9             0         0         0       19d
+replicaset.apps/api-7bc447d984             0         0         0       19d
+replicaset.apps/api-candidate-659bf465d4   0         0         0       16s
+replicaset.apps/api-candidate-dfc7fd45c    1         1         1       5m45s
+replicaset.apps/api-ddf8b5d4c              3         3         3       5m45s
+replicaset.apps/redis-6d7666dbcb           1         1         1       19d
+replicaset.apps/ui-576d5d9597              0         0         0       19d
+replicaset.apps/ui-7889d7c478              1         1         1       19d
+
+NAME                      READY   AGE
+statefulset.apps/chroma   1/1     19d
+
+NAME                                          REFERENCE        TARGETS              MINPODS   MAXPODS   REPLICAS   AGE
+horizontalpodautoscaler.autoscaling/api-hpa   Deployment/api   cpu: <unknown>/70%   3         8         3          19d
+
+NAME                    SCHEDULE    TIMEZONE   SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+cronjob.batch/reindex   0 0 * * 0   <none>     False     0        4d14h           19d
+
+NAME                                     STATUS     COMPLETIONS   DURATION   AGE
+job.batch/full-index-job                 Complete   1/1           13m        19d
+job.batch/indexer                        Running    0/1           5m44s      5m44s
+job.batch/indexer-bootstrap-1794050264   Complete   1/1           16m        19d
+job.batch/rahbar-eval                    Failed     0/1           31s        31s
+job.batch/reindex-29901600               Failed     0/1           18d        18d
+job.batch/reindex-29911680               Failed     0/1           10d        10d
+job.batch/reindex-29921760               Failed     0/1           3d6h       3d6h
+
+NAME                                         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/chroma-data-chroma-0   Bound    pvc-1a7cfb53-5752-469f-aa8d-de572031dd1a   5Gi        RWO            standard       <unset>                 19d
+persistentvolumeclaim/rahbar-data            Bound    pvc-8e035727-4299-489e-8f50-58b9d71b3bd0   5Gi        RWO            standard       <unset>                 5m45s
+persistentvolumeclaim/redis-data             Bound    pvc-20998de9-56b6-4113-a7b4-96648bad6f03   1Gi        RWO            standard       <unset>                 19d
+
+NAME                           DATA   AGE
+configmap/kube-root-ca.crt     1      19d
+configmap/rahbar-config        22     19d
+configmap/rahbar-gate-config   5      5m46s

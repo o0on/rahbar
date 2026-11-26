@@ -7,14 +7,19 @@ resources:
   - namespace.yaml
   - serviceaccounts.yaml
   - configmap.yaml
+  - gate-configmap.yaml
   - secret.yaml
   - services.yaml
+  - candidate-service.yaml
   - api-deployment.yaml
+  - candidate-deployment.yaml
   - ui-deployment.yaml
   - chroma-statefulset.yaml
+  - data-pvc.yaml
   - redis-deployment.yaml
   - indexer-job.yaml
   - reindex-cronjob.yaml
+  - eval-job.yaml
   - ingress.yaml
   - hpa.yaml
   - networkpolicy.yaml

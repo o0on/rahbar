@@ -81,6 +81,11 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            - name: data
+              mountPath: /data
       volumes:
         - name: tmp
           emptyDir: {}
+        - name: data
+          persistentVolumeClaim:
+            claimName: rahbar-data

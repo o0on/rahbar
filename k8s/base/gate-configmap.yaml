@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rahbar-gate-config
+  namespace: rahbar
+data:
+  RECALL5_MAX_DROP: "0.02"
+  FAITHFULNESS_MIN: "0.80"
+  P95_MS_MAX: "30000"
+  ABSTENTION_MIN_BASELINE: "1.0"
+  COVERAGE_MIN: "0.85"

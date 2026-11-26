@@ -13,7 +13,7 @@ INGRESS_IP ?= $(shell minikube ip 2>/dev/null)
 HOST ?= rahbar.local
 
 .DEFAULT_GOAL := help
-.PHONY: help install test lint dev cluster images apply secret index ask fetch eval eval-fixtures check up run
+.PHONY: help install test lint dev cluster images apply secret index ask fetch eval eval-fixtures a3-eval check up run
 
 help: ## list the targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-14s %s\n", $$1, $$2}'
@@ -79,6 +79,9 @@ eval: ## score eval/golden.yaml through the Ingress and apply the CI gate
 
 eval-fixtures: ## score the CI fixture golden set against a local `make dev`
 	$(BIN)/python eval/run_eval.py --api http://localhost:8000 --golden eval/fixtures/golden.fixture.yaml --out /tmp/rahbar-fixture-results.json
+
+a3-eval: ## run the A3 three-level evaluation suite (Module + Component + E2E)
+	$(BIN)/python eval/suite.py --api http://127.0.0.1:8080 --collection rahbar --seed 42 --compare-seed 43
 
 check: ## run the submission checker
 	$(PY) scripts/check_submission.py

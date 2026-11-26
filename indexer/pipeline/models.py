@@ -17,10 +17,18 @@ class Page:
 
 @dataclass
 class Document:
+    """A source document plus its RAGOps identity.
+
+    `doc_id` is the stable identity across versions: the 2026-06 handbook and
+    the 2026-11 handbook share a doc_id but have different doc_version values.
+    It defaults to the source name so the A2 fixtures keep working unchanged.
+    """
+
     source: str
-    doc_version: str         # e.g. "2026-06"; from corpus/sources.yaml
-    superseded: bool         # True for an older version of a policy
+    doc_version: str
+    superseded: bool
     pages: list[Page] = field(default_factory=list)
+    doc_id: str = ""
 
 
 @dataclass
@@ -32,13 +40,19 @@ class Chunk:
     page: int
     doc_version: str
     superseded: bool
+    doc_id: str = ""         # A2: empty for dummy chunks; A3: stable across versions
 
     def metadata(self) -> dict[str, str | int | bool]:
         """Chroma metadata values must be str, int, float or bool."""
-        return {
+        meta: dict[str, str | int | bool] = {
             "source": self.source,
             "section": self.section,
             "page": self.page,
             "doc_version": self.doc_version,
             "superseded": self.superseded,
         }
+        # Kept out of the A2 dummy index so the starter test's exact metadata
+        # assertion stays valid; every A3 chunk carries it.
+        if self.doc_id:
+            meta["doc_id"] = self.doc_id
+        return meta

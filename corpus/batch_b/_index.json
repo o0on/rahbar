@@ -1,0 +1,108 @@
+[
+  {
+    "name": "Student Services Guide 2026",
+    "file": "student-services-guide.md",
+    "doc_id": "student-services-guide",
+    "doc_version": "2026-09",
+    "fetched_at": "2026-11-20",
+    "page_count": 1,
+    "superseded": false
+  },
+  {
+    "name": "Student Services Guide 2026 (archive copy A)",
+    "file": "student-services-guide-copy-a.md",
+    "doc_id": "student-services-guide-copy-a",
+    "doc_version": "2026-09",
+    "fetched_at": "2026-11-20",
+    "page_count": 1,
+    "superseded": false
+  },
+  {
+    "name": "Student Services Guide 2026 (archive copy B)",
+    "file": "student-services-guide-copy-b.md",
+    "doc_id": "student-services-guide-copy-b",
+    "doc_version": "2026-09",
+    "fetched_at": "2026-11-20",
+    "page_count": 1,
+    "superseded": false
+  },
+  {
+    "name": "Library Services Guide 2026",
+    "file": "library-services-guide.md",
+    "doc_id": "library-services-guide",
+    "doc_version": "2026-08",
+    "fetched_at": "2026-11-20",
+    "page_count": 1,
+    "superseded": false
+  },
+  {
+    "name": "Library Services Guide 2026 (revised text)",
+    "file": "library-services-guide-near.md",
+    "doc_id": "library-services-guide-near",
+    "doc_version": "2026-09",
+    "fetched_at": "2026-11-20",
+    "page_count": 1,
+    "superseded": false
+  },
+  {
+    "name": "Laboratory Safety Manual",
+    "file": "lab-safety-manual-truncated.md",
+    "doc_id": "lab-safety-manual",
+    "doc_version": "2025-02",
+    "fetched_at": "2026-11-20",
+    "page_count": 4,
+    "truncated": true,
+    "superseded": false
+  },
+  {
+    "file": "scholarship-policy-missing-meta.md",
+    "sha256": "unknown",
+    "superseded": false
+  },
+  {
+    "name": "Academic Rules Handbook (Nov 2026)",
+    "file": "academic-rules-handbook-nov-2026.md",
+    "doc_id": "academic-rules-handbook",
+    "doc_version": "2026-11",
+    "fetched_at": "2026-11-20",
+    "page_count": 1,
+    "superseded": false
+  },
+  {
+    "name": "Examination Conduct Rules 2026",
+    "file": "exam-conduct-injected.md",
+    "doc_id": "exam-conduct-rules",
+    "doc_version": "2026-10",
+    "fetched_at": "2026-11-20",
+    "page_count": 1,
+    "injected_instruction": true,
+    "superseded": false
+  },
+  {
+    "name": "Sports Facilities Policy 2026",
+    "file": "sports-facilities-policy.md",
+    "doc_id": "sports-facilities-policy",
+    "doc_version": "2026-07",
+    "fetched_at": "2026-11-20",
+    "page_count": 1,
+    "superseded": false
+  },
+  {
+    "name": "IT Account Policy 2026",
+    "file": "it-account-policy.md",
+    "doc_id": "it-account-policy",
+    "doc_version": "2026-05",
+    "fetched_at": "2026-11-20",
+    "page_count": 1,
+    "superseded": false
+  },
+  {
+    "name": "Fee Refund Policy 2026",
+    "file": "fee-refund-policy.md",
+    "doc_id": "fee-refund-policy",
+    "doc_version": "2026-06",
+    "fetched_at": "2026-11-20",
+    "page_count": 1,
+    "superseded": false
+  }
+]

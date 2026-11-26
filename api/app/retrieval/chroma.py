@@ -110,6 +110,7 @@ class ChromaRetriever:
                 section=str(meta.get("section", "(no section)")),
                 page=int(meta["page"]) if meta.get("page") is not None else None,
                 doc_version=meta.get("doc_version"),
+                doc_id=meta.get("doc_id"),
                 superseded=bool(meta.get("superseded", False)),
                 score=round(1.0 - float(distance), 6),   # cosine distance -> similarity
             ))
