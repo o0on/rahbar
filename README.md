@@ -164,12 +164,11 @@ This verifies document SHA-256 checksums recorded in `corpus/MANIFEST.md`.
 
 ---
 
-## Assignment 03 — exact commands (A, D, F data plane)
+## Assignment 03 — exact commands (Ashar: A, D, F data plane | Aun: B, C, E, F release)
 
 The A3 demo runs on a local `kind` cluster (context `kind-rahbar`), not
 Docker-only. Full walkthrough, screenshot timing and result locations are in
-`docs/A3-ASHAR-COMMANDS.md`. Parts B, C, E and the release side of F are owned
-by Aun (`docs/A3-WORK-SPLIT.md`); their exact commands belong in this section.
+`docs/A3-ASHAR-COMMANDS.md` and `docs/EVAL.md`.
 
 ### A — data management
 
@@ -209,6 +208,52 @@ kubectl -n rahbar get all,pvc,configmap,cronjob,job
 kubectl -n rahbar get deploy api -o yaml | grep -A3 -E 'data|mountPath|claimName'
 ```
 
+### B — 3-level evaluation suite (Aun)
+
+```bash
+# Run Module + Component + E2E + typo noise + dual-seed determinism in one command:
+make a3-eval
+# Or explicitly:
+python eval/suite.py --api http://127.0.0.1:8080 --collection rahbar --seed 42 --compare-seed 43
+```
+
+### C — change experiment & release gate (Aun)
+
+```bash
+# Evaluates bad candidate (chunk=100, overlap=0, top_k=1 -> FAIL) vs tuned candidate (hybrid rerank -> PASS):
+python eval/change_experiment.py --baseline eval/results/20261126T113607Z.json \
+  --chroma-host 127.0.0.1 --chroma-port 8001 --ollama-url http://127.0.0.1:11434
+# Standalone gate verification:
+python eval/gate.py --baseline eval/results/20261126T113607Z.json --candidate eval/results/change/bad-candidate.json
+python eval/gate.py --baseline eval/results/20261126T113607Z.json --candidate eval/results/change/good-candidate.json
+```
+
+### E — live query coverage & Batch B drift (Aun)
+
+```bash
+# Measure coverage before/after adding 6 Batch B golden questions + Batch B drift:
+python eval/coverage.py --live eval/live_queries.jsonl --golden eval/golden.jsonl --out eval/results/coverage/after.json
+python eval/drift_check.py
+```
+
+### F — release & eval manifests (Aun: F2, F3, F5)
+
+```bash
+# Run in-cluster evaluation Job & demonstrate ConfigMap-only gate flip (no image rebuild):
+kubectl apply -f k8s/base/eval-job.yaml && kubectl -n rahbar logs -f job/rahbar-eval
+kubectl -n rahbar patch configmap rahbar-gate-config --type merge -p '{"data":{"P95_MS_MAX":"50"}}'
+kubectl -n rahbar delete job rahbar-eval --ignore-not-found && kubectl apply -f k8s/base/eval-job.yaml
+kubectl -n rahbar logs -f job/rahbar-eval          # expected: GATE FAIL (exit 1)
+kubectl apply -f k8s/base/gate-configmap.yaml    # restore
+
+# Canary rollout & rollback verification:
+kubectl -n rahbar set env deploy/api-candidate EMBED_VERSION=v2-bad CHROMA_COLLECTION=rahbar-v2-bad TOP_K=1
+kubectl -n rahbar rollout status deploy/api-candidate --timeout=120s
+kubectl -n rahbar rollout undo deploy/api-candidate
+kubectl -n rahbar rollout status deploy/api-candidate --timeout=120s
+```
+
 Result files: `eval/results/verify/*.json`, `eval/results/trace-summary.json`,
+`eval/results/*.json`, `eval/results/change/*.json`, `eval/results/coverage/*.json`,
 `traces/trace.jsonl`. Screenshots: `report/screenshots/`, pasted into the
 Appendix of `report/A3-Report-Template.docx`.
