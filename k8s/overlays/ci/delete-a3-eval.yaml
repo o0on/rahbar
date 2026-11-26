@@ -1,0 +1,8 @@
+# CI invokes eval/run_eval.py directly against svc/api instead of running
+# the A3 rahbar-eval cluster Job.
+$patch: delete
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rahbar-eval
+  namespace: rahbar
