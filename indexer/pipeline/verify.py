@@ -140,7 +140,7 @@ def load_sources(corpus_dir: str | Path) -> list[Source]:
         meta = _front_matter(path) if path.suffix.lower() == ".md" else {}
         sources.append(Source(
             path=path,
-            doc_id=str(meta.get("doc_id") or _slug(path.name)),
+            doc_id=_doc_id({"file": path.name, **meta}, aliases),
             doc_version=str(meta.get("doc_version", meta.get("date", "unknown"))),
             superseded=str(meta.get("superseded", "false")).lower() == "true",
             title=str(meta.get("title") or path.stem),
@@ -294,6 +294,8 @@ def verify(prepared: list[Prepared], settings: IndexerSettings,
             if item.source.path.name in skip_embed:
                 continue
             for j, earlier in enumerate(candidates[:i]):
+                if earlier.action == "archive" and earlier.source.doc_id == item.source.doc_id:
+                    continue
                 score = cosine(vectors[i], vectors[j])
                 if score >= settings.near_dup_threshold:
                     item.checks["uniqueness"] = Check(

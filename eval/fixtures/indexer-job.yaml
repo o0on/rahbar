@@ -57,9 +57,13 @@ spec:
               readOnly: true
             - name: tmp
               mountPath: /tmp
+            - name: data
+              mountPath: /data
       volumes:
         - name: corpus
           configMap:
             name: rahbar-fixtures
         - name: tmp
+          emptyDir: {}
+        - name: data
           emptyDir: {}

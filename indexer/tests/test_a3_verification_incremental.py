@@ -254,3 +254,23 @@ def test_second_ingest_embeds_zero_chunks_and_deletion_leaves_no_orphans(
     state["docs"]["a"]["chunk_ids"] = list(client.collection.rows)
     save_state(data, state)
     assert record_chunks(state, [], {}, data).exists()
+
+
+def test_superseded_edition_does_not_quarantine_newer_version(tmp_path: Path) -> None:
+    corpus = tmp_path / "fixtures"
+    corpus.mkdir()
+    (corpus / "academic-rules-2023.md").write_text(
+        "---\nsource: academic-rules-2023.md\ndoc_version: 2023\nsuperseded: true\n---\n"
+        "# Rules\n\n## 1. Attendance\n\n75 percent required.\n",
+        encoding="utf-8",
+    )
+    (corpus / "academic-rules-2026.md").write_text(
+        "---\nsource: academic-rules-2026.md\ndoc_version: 2026\nsuperseded: false\n---\n"
+        "# Rules\n\n## 1. Attendance\n\n80 percent required.\n",
+        encoding="utf-8",
+    )
+    prepared = prepare(load_sources(corpus))
+    report = verify(prepared, settings(tmp_path, corpus), embedder=lambda texts: [[1.0, 0.0] for _ in texts])
+    actions = {doc["source"]: doc["action"] for doc in report["documents"]}
+    assert actions["academic-rules-2023.md"] == "archive"
+    assert actions["academic-rules-2026.md"] == "index"
