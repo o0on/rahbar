@@ -25,7 +25,8 @@ resources:
 
 patches:
   - path: delete-base-indexer-job.yaml
-  - path: delete-a3-candidate-eval.yaml
+  - path: delete-a3-candidate.yaml
+  - path: delete-a3-eval.yaml
 
   - target:
       kind: ConfigMap
