@@ -5,15 +5,16 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.28%2B-326ce5.svg?logo=kubernetes&logoColor=white)](https://kubernetes.io)
 
-RAHBAR is a production-grade, grounded Question-Answering service running on Kubernetes. It indexes real university policies and academic handbooks, enforces schema-constrained answers with precise citations, abstains honestly when information is missing, and isolates the indexing write path from query execution.
+RAHBAR is a production-grade, grounded Question-Answering and RAGOps platform running on Kubernetes. It indexes university policies and academic handbooks through a verified data-lake pipeline, enforces schema-constrained answers with precise citations, abstains honestly when information is missing or poisoned, traces every query end-to-end, and gates candidate releases with an automated evaluation suite.
 
 ---
 
 ## Architecture Overview
 
-RAHBAR is built on a fundamental single-writer, multi-reader architecture:
-- **Indexing Write Path**: Indexing is executed exclusively on-demand via a Kubernetes **Job** (`batch/v1`) or weekly **CronJob**. It writes vectors and metadata to ChromaDB and flushes the Redis semantic cache.
-- **Query Read Path**: The API service runs as a 3-replica **Deployment** with HPA autoscaling (3–8 replicas). It reads from ChromaDB and Redis; it **never writes** to the index.
+RAHBAR is built on a single-writer, multi-reader RAGOps architecture:
+- **Ingestion & Data-Lake Write Path**: Verification, deduplication, quarantine, archiving, chunking, and embedding execute exclusively via Kubernetes **Jobs** (`batch/v1`) or the weekly **CronJob**. It writes vectors/metadata to ChromaDB, persists lake/archive/verify state on `rahbar-data` (`/data`), and flushes the Redis semantic cache.
+- **Query Read Path**: The API service runs as a 3-replica **Deployment** with HPA autoscaling (3–8 replicas). It reads from ChromaDB and Redis, writes per-request JSON traces (`TRACE_PATH=/data/traces/trace.jsonl`), and **never writes** to the index.
+- **Evaluation Gate & Canary Rollout (A3)**: `job/rahbar-eval` reads release thresholds from ConfigMap `rahbar-gate-config`, while `deploy/api-candidate` (`svc/api-candidate`) serves isolated candidate collections (`rahbar-v2-tuned`) with `maxSurge: 1`, `maxUnavailable: 0`, and instant `kubectl rollout undo`.
 
 ```mermaid
 graph TD
@@ -23,14 +24,20 @@ graph TD
     subgraph Namespace: rahbar
         Ingress -->|/| UI[UI Deployment<br/>Nginx non-root :8080]
         Ingress -->|/api| API[API Deployment<br/>3 Replicas + HPA :8000]
+        Canary[Canary Deployment<br/>api-candidate :8000]
 
         UI -.->|Browser API calls| API
-
         API -->|Semantic Lookup| Redis[(Redis Cache<br/>PVC :6379)]
         API -->|Vector Search top-k| Chroma[(ChromaDB StatefulSet<br/>volumeClaimTemplates :8000)]
         API -->|Generation| Ollama[Ollama LLM<br/>Host or In-Cluster :11434]
+        API -->|JSONL Traces| DataPVC[(Data PVC /data)]
 
-        IndexerJob[Indexer Batch Job<br/>One-shot Writer] -->|Chunk & Embed| Chroma
+        Canary -->|Candidate Collection| Chroma
+        EvalJob[Eval Gate Job<br/>rahbar-eval] -->|Smoke + Gate Check| API
+        GateCM[ConfigMap<br/>rahbar-gate-config] -.->|Thresholds| EvalJob
+
+        IndexerJob[Indexer Batch Job<br/>Sole Writer] -->|Verify, Chunk & Embed| Chroma
+        IndexerJob -->|Lake, Archive & Reports| DataPVC
         IndexerJob -.->|Invalidate on Reindex| Redis
         CronJob[Weekly Reindex CronJob] -.->|Triggers| IndexerJob
     end
@@ -164,11 +171,14 @@ This verifies document SHA-256 checksums recorded in `corpus/MANIFEST.md`.
 
 ---
 
-## Assignment 03 — exact commands (Ashar: A, D, F data plane | Aun: B, C, E, F release)
+## Assignment 03 — RAGOps Workflow & Exact Commands (Ashar: A, D, F data plane | Aun: B, C, E, F release)
 
-The A3 demo runs on a local `kind` cluster (context `kind-rahbar`), not
-Docker-only. Full walkthrough, screenshot timing and result locations are in
-`docs/A3-ASHAR-COMMANDS.md` and `docs/EVAL.md`.
+The A3 stack runs on a local `kind` cluster (context `kind-rahbar`) with `k8s/overlays/dev` and host/in-cluster Ollama (`nomic-embed-text` + `llama3.2:3b`). See the companion docs for full design, contracts, and threshold justifications:
+- Work split & contracts: [`docs/A3-WORK-SPLIT.md`](docs/A3-WORK-SPLIT.md)
+- Data-plane setup & PowerShell commands: [`docs/A3-ASHAR-COMMANDS.md`](docs/A3-ASHAR-COMMANDS.md)
+- Evaluation suite & gate thresholds: [`docs/EVAL.md`](docs/EVAL.md)
+- Release gate & canary manifests guide: [`k8s/README.md`](k8s/README.md)
+- Final Assignment 03 report: [`report/A3-Report.pdf`](report/A3-Report.pdf) ([`.docx`](report/A3-Report.docx))
 
 ### A — data management
 
@@ -253,7 +263,28 @@ kubectl -n rahbar rollout undo deploy/api-candidate
 kubectl -n rahbar rollout status deploy/api-candidate --timeout=120s
 ```
 
-Result files: `eval/results/verify/*.json`, `eval/results/trace-summary.json`,
-`eval/results/*.json`, `eval/results/change/*.json`, `eval/results/coverage/*.json`,
-`traces/trace.jsonl`. Screenshots: `report/screenshots/`, pasted into the
-Appendix of `report/A3-Report-Template.docx`.
+### Verification, CI & Submission Checks
+
+```bash
+# Lint, type-check, unit/contract tests (>= 60% coverage gate), and submission audit:
+ruff check .
+mypy api/app indexer/pipeline --ignore-missing-imports
+pytest api/tests indexer/tests --cov=api/app --cov=indexer/pipeline --cov-fail-under=60 -q
+python scripts/check_submission.py
+
+# Validate Kustomize overlays:
+kubectl kustomize k8s/overlays/prod >/dev/null
+kubectl kustomize k8s/overlays/dev  >/dev/null
+kubectl kustomize k8s/overlays/ci   >/dev/null
+```
+
+### Committed A3 Evidence & Branch Flow
+
+- **Evaluation & Gate Artifacts**:
+  - Three-level suite & dual-seed run: `eval/results/20261126T113607Z.json`
+  - Change experiment & gate comparison: `eval/results/change/` (`bad-candidate.json`, `good-candidate.json`, `comparison.json`)
+  - Query coverage & Batch B drift: `eval/results/coverage/` (`before.json`, `after.json`, `drift.json`)
+  - Data verification & traces: `eval/results/verify/*.json`, `eval/results/trace-summary.json`, `traces/trace.jsonl`
+  - Cluster & rollout evidence logs: `eval/results/f_evidence/`
+- **Report & Screenshots**: Uncropped terminal screenshots live in `report/screenshots/` and are embedded in the Appendix of [`report/A3-Report.docx`](report/A3-Report.docx) / [`report/A3-Report.pdf`](report/A3-Report.pdf).
+- **Branching & CI/CD**: Assignment 03 development lives on branch `a3`; `.github/workflows/ci.yml` runs automatically on pushes to `dev` and pull requests targeting `main` (never push directly to `main`), and `.github/workflows/cd.yml` publishes SHA-tagged images on merge to `main`.
