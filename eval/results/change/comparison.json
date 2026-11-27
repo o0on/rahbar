@@ -70,11 +70,11 @@
       "recall@5": 0.9474,
       "mrr": 0.7632,
       "ndcg@5": 0.8114,
-      "faithfulness": 0.92,
+      "faithfulness": 0.84,
       "abstention": 1.0,
       "citation_validity": 1.0,
-      "p50_ms": 13060.76,
-      "p95_ms": 29872.92
+      "p50_ms": 3497.76,
+      "p95_ms": 6981.53
     },
     "gate_passed": true,
     "checks": [
@@ -88,7 +88,7 @@
       {
         "metric": "faithfulness",
         "baseline": 0.92,
-        "candidate": 0.92,
+        "candidate": 0.84,
         "rule": ">= 0.80",
         "pass": true
       },
@@ -109,7 +109,7 @@
       {
         "metric": "p95_ms",
         "baseline": 28003.46,
-        "candidate": 29872.92,
+        "candidate": 6981.53,
         "rule": "<= 30000.0 ms",
         "pass": true
       }
