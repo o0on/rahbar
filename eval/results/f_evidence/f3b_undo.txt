@@ -4,19 +4,19 @@ Waiting for deployment "api-candidate" rollout to finish: 1 old replicas are pen
 Waiting for deployment "api-candidate" rollout to finish: 1 old replicas are pending termination...
 deployment "api-candidate" successfully rolled out
 {
-  "trace_id": "a5a70910763445c585bc67897a935b8f",
-  "collection": "rahbar-v2-tuned",
-  "embedding_version": "v2-tuned",
+  "trace_id": "784713b6f4fc4e918752b8357c947d8e",
+  "collection": "rahbar",
+  "embedding_version": "v1",
   "embedding_model": "nomic-embed-text",
   "parameters": {
     "temperature": 0.2,
-    "top_k": 6
+    "top_k": 5
   },
   "citations": [
     {
-      "source": "grading-page.html",
-      "section": "Warning/Probation",
-      "page": null
+      "source": "academic-rules-handbook-nov-2026.md",
+      "section": "2. Probation and dismissal",
+      "page": 1
     }
   ]
 }
