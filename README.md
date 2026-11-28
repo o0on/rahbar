@@ -281,10 +281,10 @@ kubectl kustomize k8s/overlays/ci   >/dev/null
 ### Committed A3 Evidence & Branch Flow
 
 - **Evaluation & Gate Artifacts**:
-  - Three-level suite & dual-seed run: `eval/results/20261126T113607Z.json`
+  - Three-level suite & dual-seed runs: `eval/results/20261126T113607Z.json` (25-question baseline), `eval/results/20261127T141521Z.json` (31-question expanded run used in the report)
   - Change experiment & gate comparison: `eval/results/change/` (`bad-candidate.json`, `good-candidate.json`, `comparison.json`)
   - Query coverage & Batch B drift: `eval/results/coverage/` (`before.json`, `after.json`, `drift.json`)
   - Data verification & traces: `eval/results/verify/*.json`, `eval/results/trace-summary.json`, `traces/trace.jsonl`
   - Cluster & rollout evidence logs: `eval/results/f_evidence/`
-- **Report & Screenshots**: Uncropped terminal screenshots live in `report/screenshots/` and are embedded in the Appendix of [`report/A3-Report.docx`](report/A3-Report.docx) / [`report/A3-Report.pdf`](report/A3-Report.pdf).
+- **Report & Screenshots**: Uncropped terminal screenshots live in `report/screenshots/`; 14 of them are embedded in the Appendix of [`report/A3-Report.docx`](report/A3-Report.docx) / [`report/A3-Report.pdf`](report/A3-Report.pdf). The byte-identical duplicate `C-PASS.png` was removed from the Appendix because `C-FAIL.png` already contains both the gate FAIL and PASS runs in one VS Code capture.
 - **Branching & CI/CD**: Assignment 03 development lives on branch `a3`; `.github/workflows/ci.yml` runs automatically on pushes to `dev` and pull requests targeting `main` (never push directly to `main`), and `.github/workflows/cd.yml` publishes SHA-tagged images on merge to `main`.

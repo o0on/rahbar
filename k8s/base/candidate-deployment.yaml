@@ -49,17 +49,17 @@ spec:
             - name: EMBED_VERSION
               value: "v2-tuned"
             - name: TOP_K
-              value: "6"
+              value: "5"
           ports:
             - containerPort: 8000
               name: http
           resources:
             requests:
               cpu: 200m
-              memory: 256Mi
+              memory: 512Mi
             limits:
               cpu: 1000m
-              memory: 1Gi
+              memory: 2Gi
           startupProbe:
             httpGet:
               path: /healthz
