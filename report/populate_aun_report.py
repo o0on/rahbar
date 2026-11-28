@@ -37,10 +37,12 @@ def main() -> None:
 
     doc = Document(DOCX)
 
-    # 1) Update Title table member names cleanly (keep placeholders minimal/accurate)
+    # 1) Update Title table member names and roll numbers
     t_members = doc.tables[0]
-    t_members.rows[1].cells[1].text = "Ashar Shafiq"
+    t_members.rows[1].cells[1].text = "Ashar Ahmed"
+    t_members.rows[1].cells[2].text = "24i-3072"
     t_members.rows[2].cells[1].text = "Aun Ulfat"
+    t_members.rows[2].cells[2].text = "24i-3068"
 
     # 2) Fill Table 1 (Figure 3 lifecycle mapping — clarify Aun's implemented parts)
     t1 = doc.tables[1]
