@@ -23,6 +23,7 @@ from .providers.llm import get_provider
 from .retrieval import get_retriever
 from .routes import ask, health, metrics
 from .services.cache import SemanticCache
+from .tracing import TraceWriter
 
 log = logging.getLogger("rahbar.api")
 
@@ -37,6 +38,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # The semantic cache only exists against the real index: with the stub
     # retriever there is nothing to embed a query with and no Redis to talk to.
     app.state.cache = SemanticCache(settings) if settings.retriever == "chroma" else None
+    # D1: stdout always; the volume path comes from TRACE_PATH in the ConfigMap.
+    app.state.trace_writer = TraceWriter()
     # Section 4.4: Enforce embedding-model pin guardrail.
     # The API only reads the index. The indexer Job writes it.
     if settings.retriever == "chroma":

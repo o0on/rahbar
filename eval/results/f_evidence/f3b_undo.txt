@@ -1,0 +1,22 @@
+=== F3b: ROLLOUT UNDO + POST-UNDO TRACE ===
+deployment.apps/api-candidate rolled back
+Waiting for deployment "api-candidate" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "api-candidate" rollout to finish: 1 old replicas are pending termination...
+deployment "api-candidate" successfully rolled out
+{
+  "trace_id": "784713b6f4fc4e918752b8357c947d8e",
+  "collection": "rahbar",
+  "embedding_version": "v1",
+  "embedding_model": "nomic-embed-text",
+  "parameters": {
+    "temperature": 0.2,
+    "top_k": 5
+  },
+  "citations": [
+    {
+      "source": "academic-rules-handbook-nov-2026.md",
+      "section": "2. Probation and dismissal",
+      "page": 1
+    }
+  ]
+}

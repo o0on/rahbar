@@ -1,0 +1,118 @@
+{
+  "baseline": {
+    "recall@3": 0.8947,
+    "recall@5": 0.9474,
+    "mrr": 0.7588,
+    "ndcg@5": 0.8065,
+    "faithfulness": 0.92,
+    "abstention": 1.0,
+    "citation_validity": 1.0,
+    "p50_ms": 2887.02,
+    "p95_ms": 28003.46,
+    "embed_cosine_gap": 0.2872,
+    "embed_ms_per_chunk": 27.94,
+    "embed_determinism": 1.0
+  },
+  "bad_candidate": {
+    "metrics": {
+      "recall@3": 0.4211,
+      "recall@5": 0.4211,
+      "mrr": 0.4211,
+      "ndcg@5": 0.4211,
+      "faithfulness": 0.56,
+      "abstention": 1.0,
+      "citation_validity": 1.0,
+      "p50_ms": 2489.42,
+      "p95_ms": 8898.21
+    },
+    "gate_passed": false,
+    "checks": [
+      {
+        "metric": "recall@5",
+        "baseline": 0.9474,
+        "candidate": 0.4211,
+        "rule": ">= 0.9274 (drop <= 0.02)",
+        "pass": false
+      },
+      {
+        "metric": "faithfulness",
+        "baseline": 0.92,
+        "candidate": 0.56,
+        "rule": ">= 0.80",
+        "pass": false
+      },
+      {
+        "metric": "abstention",
+        "baseline": 1.0,
+        "candidate": 1.0,
+        "rule": ">= 1.00",
+        "pass": true
+      },
+      {
+        "metric": "citation_validity",
+        "baseline": 1.0,
+        "candidate": 1.0,
+        "rule": ">= 0.95",
+        "pass": true
+      },
+      {
+        "metric": "p95_ms",
+        "baseline": 28003.46,
+        "candidate": 8898.21,
+        "rule": "<= 30000.0 ms",
+        "pass": true
+      }
+    ]
+  },
+  "good_candidate": {
+    "metrics": {
+      "recall@3": 0.9474,
+      "recall@5": 0.9474,
+      "mrr": 0.7632,
+      "ndcg@5": 0.8114,
+      "faithfulness": 0.84,
+      "abstention": 1.0,
+      "citation_validity": 1.0,
+      "p50_ms": 3497.76,
+      "p95_ms": 6981.53
+    },
+    "gate_passed": true,
+    "checks": [
+      {
+        "metric": "recall@5",
+        "baseline": 0.9474,
+        "candidate": 0.9474,
+        "rule": ">= 0.9274 (drop <= 0.02)",
+        "pass": true
+      },
+      {
+        "metric": "faithfulness",
+        "baseline": 0.92,
+        "candidate": 0.84,
+        "rule": ">= 0.80",
+        "pass": true
+      },
+      {
+        "metric": "abstention",
+        "baseline": 1.0,
+        "candidate": 1.0,
+        "rule": ">= 1.00",
+        "pass": true
+      },
+      {
+        "metric": "citation_validity",
+        "baseline": 1.0,
+        "candidate": 1.0,
+        "rule": ">= 0.95",
+        "pass": true
+      },
+      {
+        "metric": "p95_ms",
+        "baseline": 28003.46,
+        "candidate": 6981.53,
+        "rule": "<= 30000.0 ms",
+        "pass": true
+      }
+    ]
+  }
+}

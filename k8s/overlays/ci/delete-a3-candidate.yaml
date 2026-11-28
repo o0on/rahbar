@@ -1,0 +1,8 @@
+# CI runs e2e-eval against deploy/api + fixture-indexer only, so delete
+# the A3 canary Deployment from the CI overlay.
+$patch: delete
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-candidate
+  namespace: rahbar

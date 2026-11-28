@@ -1,0 +1,414 @@
+{
+  "timestamp": "2026-11-26T11:29:51Z",
+  "golden_count": 25,
+  "live_total": 40,
+  "in_domain_count": 28,
+  "out_domain_count": 12,
+  "sim_threshold": 0.72,
+  "coverage_min": 0.85,
+  "in_domain_covered": 17,
+  "in_domain_coverage": 0.6071,
+  "overall_coverage": 0.55,
+  "passed": false,
+  "uncovered_topics": [
+    {
+      "id": "lq04",
+      "topic": "retake_exam",
+      "question": "Can I apply for a retake exam if my sibling is getting married?",
+      "nearest_golden_id": "g04",
+      "max_similarity": 0.7177
+    },
+    {
+      "id": "lq19",
+      "topic": "it_mfa",
+      "question": "Where is multi-factor authentication mandatory and how do I reset a lost MFA device?",
+      "nearest_golden_id": "g03",
+      "max_similarity": 0.5192
+    },
+    {
+      "id": "lq20",
+      "topic": "it_password",
+      "question": "What characters are required in university IT passwords and how often do they expire?",
+      "nearest_golden_id": "g07",
+      "max_similarity": 0.5427
+    },
+    {
+      "id": "lq21",
+      "topic": "sports_gym",
+      "question": "What are the gymnasium peak hours and machine time limit?",
+      "nearest_golden_id": "g13",
+      "max_similarity": 0.5787
+    },
+    {
+      "id": "lq22",
+      "topic": "sports_grounds",
+      "question": "How far ahead must a student society book the football ground or tennis courts?",
+      "nearest_golden_id": "g01",
+      "max_similarity": 0.5734
+    },
+    {
+      "id": "lq23",
+      "topic": "fee_refund_tiers",
+      "question": "What percentage of tuition is refunded when withdrawing within four weeks or between five and eight weeks?",
+      "nearest_golden_id": "g17",
+      "max_similarity": 0.6783
+    },
+    {
+      "id": "lq24",
+      "topic": "fee_refund_cancel",
+      "question": "Within how many working days are fees refunded if the university cancels a course?",
+      "nearest_golden_id": "g17",
+      "max_similarity": 0.6902
+    },
+    {
+      "id": "lq25",
+      "topic": "library_postgrad",
+      "question": "How many books can a postgraduate student borrow and for how many days?",
+      "nearest_golden_id": "g11",
+      "max_similarity": 0.6454
+    },
+    {
+      "id": "lq26",
+      "topic": "student_complaints",
+      "question": "How many days does the Student Services Office have to acknowledge and decide a written complaint?",
+      "nearest_golden_id": "g06",
+      "max_similarity": 0.6459
+    },
+    {
+      "id": "lq27",
+      "topic": "clinic_hours",
+      "question": "What are the opening hours of the university health clinic and where is Student Services located?",
+      "nearest_golden_id": "g23",
+      "max_similarity": 0.5732
+    },
+    {
+      "id": "lq28",
+      "topic": "exam_calculator",
+      "question": "What items like silent calculators are allowed on the desk during an examination?",
+      "nearest_golden_id": "g12",
+      "max_similarity": 0.6214
+    }
+  ],
+  "per_query": [
+    {
+      "id": "lq01",
+      "domain": "in",
+      "topic": "attendance",
+      "nearest_golden_id": "g01",
+      "max_similarity": 0.8794,
+      "covered": true
+    },
+    {
+      "id": "lq02",
+      "domain": "in",
+      "topic": "academic_warning",
+      "nearest_golden_id": "g02",
+      "max_similarity": 0.8576,
+      "covered": true
+    },
+    {
+      "id": "lq03",
+      "domain": "in",
+      "topic": "warning_reset",
+      "nearest_golden_id": "g03",
+      "max_similarity": 0.8598,
+      "covered": true
+    },
+    {
+      "id": "lq04",
+      "domain": "in",
+      "topic": "retake_exam",
+      "nearest_golden_id": "g04",
+      "max_similarity": 0.7177,
+      "covered": false
+    },
+    {
+      "id": "lq05",
+      "domain": "in",
+      "topic": "gen_ai",
+      "nearest_golden_id": "g05",
+      "max_similarity": 0.8961,
+      "covered": true
+    },
+    {
+      "id": "lq06",
+      "domain": "in",
+      "topic": "grade_review",
+      "nearest_golden_id": "g06",
+      "max_similarity": 0.774,
+      "covered": true
+    },
+    {
+      "id": "lq07",
+      "domain": "in",
+      "topic": "course_withdrawal",
+      "nearest_golden_id": "g07",
+      "max_similarity": 0.9164,
+      "covered": true
+    },
+    {
+      "id": "lq08",
+      "domain": "in",
+      "topic": "summer_withdrawal",
+      "nearest_golden_id": "g08",
+      "max_similarity": 0.9089,
+      "covered": true
+    },
+    {
+      "id": "lq09",
+      "domain": "in",
+      "topic": "credit_transfer",
+      "nearest_golden_id": "g09",
+      "max_similarity": 0.8137,
+      "covered": true
+    },
+    {
+      "id": "lq10",
+      "domain": "in",
+      "topic": "summer_duration",
+      "nearest_golden_id": "g10",
+      "max_similarity": 0.8536,
+      "covered": true
+    },
+    {
+      "id": "lq11",
+      "domain": "in",
+      "topic": "computer_lab",
+      "nearest_golden_id": "g12",
+      "max_similarity": 0.8517,
+      "covered": true
+    },
+    {
+      "id": "lq12",
+      "domain": "in",
+      "topic": "tuition_fee",
+      "nearest_golden_id": "g13",
+      "max_similarity": 0.926,
+      "covered": true
+    },
+    {
+      "id": "lq13",
+      "domain": "in",
+      "topic": "admission_fee",
+      "nearest_golden_id": "g14",
+      "max_similarity": 0.856,
+      "covered": true
+    },
+    {
+      "id": "lq14",
+      "domain": "in",
+      "topic": "misc_fees",
+      "nearest_golden_id": "g15",
+      "max_similarity": 0.88,
+      "covered": true
+    },
+    {
+      "id": "lq15",
+      "domain": "in",
+      "topic": "grading_points",
+      "nearest_golden_id": "g16",
+      "max_similarity": 0.8885,
+      "covered": true
+    },
+    {
+      "id": "lq16",
+      "domain": "in",
+      "topic": "old_withdrawal_2023",
+      "nearest_golden_id": "g17",
+      "max_similarity": 0.8814,
+      "covered": true
+    },
+    {
+      "id": "lq17",
+      "domain": "in",
+      "topic": "startup_duration",
+      "nearest_golden_id": "g18",
+      "max_similarity": 0.8936,
+      "covered": true
+    },
+    {
+      "id": "lq18",
+      "domain": "in",
+      "topic": "oric_deliverables",
+      "nearest_golden_id": "g19",
+      "max_similarity": 0.8293,
+      "covered": true
+    },
+    {
+      "id": "lq19",
+      "domain": "in",
+      "topic": "it_mfa",
+      "nearest_golden_id": "g03",
+      "max_similarity": 0.5192,
+      "covered": false
+    },
+    {
+      "id": "lq20",
+      "domain": "in",
+      "topic": "it_password",
+      "nearest_golden_id": "g07",
+      "max_similarity": 0.5427,
+      "covered": false
+    },
+    {
+      "id": "lq21",
+      "domain": "in",
+      "topic": "sports_gym",
+      "nearest_golden_id": "g13",
+      "max_similarity": 0.5787,
+      "covered": false
+    },
+    {
+      "id": "lq22",
+      "domain": "in",
+      "topic": "sports_grounds",
+      "nearest_golden_id": "g01",
+      "max_similarity": 0.5734,
+      "covered": false
+    },
+    {
+      "id": "lq23",
+      "domain": "in",
+      "topic": "fee_refund_tiers",
+      "nearest_golden_id": "g17",
+      "max_similarity": 0.6783,
+      "covered": false
+    },
+    {
+      "id": "lq24",
+      "domain": "in",
+      "topic": "fee_refund_cancel",
+      "nearest_golden_id": "g17",
+      "max_similarity": 0.6902,
+      "covered": false
+    },
+    {
+      "id": "lq25",
+      "domain": "in",
+      "topic": "library_postgrad",
+      "nearest_golden_id": "g11",
+      "max_similarity": 0.6454,
+      "covered": false
+    },
+    {
+      "id": "lq26",
+      "domain": "in",
+      "topic": "student_complaints",
+      "nearest_golden_id": "g06",
+      "max_similarity": 0.6459,
+      "covered": false
+    },
+    {
+      "id": "lq27",
+      "domain": "in",
+      "topic": "clinic_hours",
+      "nearest_golden_id": "g23",
+      "max_similarity": 0.5732,
+      "covered": false
+    },
+    {
+      "id": "lq28",
+      "domain": "in",
+      "topic": "exam_calculator",
+      "nearest_golden_id": "g12",
+      "max_similarity": 0.6214,
+      "covered": false
+    },
+    {
+      "id": "lq29",
+      "domain": "out",
+      "topic": "hostel_pets",
+      "nearest_golden_id": "g20",
+      "max_similarity": 0.9306,
+      "covered": true
+    },
+    {
+      "id": "lq30",
+      "domain": "out",
+      "topic": "marine_biology",
+      "nearest_golden_id": "g21",
+      "max_similarity": 0.951,
+      "covered": true
+    },
+    {
+      "id": "lq31",
+      "domain": "out",
+      "topic": "parking_permit",
+      "nearest_golden_id": "g22",
+      "max_similarity": 0.9772,
+      "covered": true
+    },
+    {
+      "id": "lq32",
+      "domain": "out",
+      "topic": "shuttle_bus",
+      "nearest_golden_id": "g23",
+      "max_similarity": 0.8869,
+      "covered": true
+    },
+    {
+      "id": "lq33",
+      "domain": "out",
+      "topic": "cafeteria_menu",
+      "nearest_golden_id": "g24",
+      "max_similarity": 0.7475,
+      "covered": true
+    },
+    {
+      "id": "lq34",
+      "domain": "out",
+      "topic": "swimming_pool",
+      "nearest_golden_id": "g20",
+      "max_similarity": 0.5671,
+      "covered": false
+    },
+    {
+      "id": "lq35",
+      "domain": "out",
+      "topic": "wifi_guest",
+      "nearest_golden_id": "g14",
+      "max_similarity": 0.5939,
+      "covered": false
+    },
+    {
+      "id": "lq36",
+      "domain": "out",
+      "topic": "gown_rental",
+      "nearest_golden_id": "g14",
+      "max_similarity": 0.5977,
+      "covered": false
+    },
+    {
+      "id": "lq37",
+      "domain": "out",
+      "topic": "dorm_curfew",
+      "nearest_golden_id": "g24",
+      "max_similarity": 0.6269,
+      "covered": false
+    },
+    {
+      "id": "lq38",
+      "domain": "out",
+      "topic": "coffee_shop",
+      "nearest_golden_id": "g23",
+      "max_similarity": 0.5589,
+      "covered": false
+    },
+    {
+      "id": "lq39",
+      "domain": "out",
+      "topic": "alumni_gym",
+      "nearest_golden_id": "g22",
+      "max_similarity": 0.6055,
+      "covered": false
+    },
+    {
+      "id": "lq40",
+      "domain": "out",
+      "topic": "solar_discount",
+      "nearest_golden_id": "g22",
+      "max_similarity": 0.6362,
+      "covered": false
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{"id": "lq01", "domain": "in", "topic": "attendance", "question": "What percentage of class attendance do undergraduates need to keep?"}
+{"id": "lq02", "domain": "in", "topic": "academic_warning", "question": "What minimum CGPA stops an undergrad from getting an academic warning?"}
+{"id": "lq03", "domain": "in", "topic": "warning_reset", "question": "How is the warning count reset after a 1st or 2nd academic warning?"}
+{"id": "lq04", "domain": "in", "topic": "retake_exam", "question": "Can I apply for a retake exam if my sibling is getting married?"}
+{"id": "lq05", "domain": "in", "topic": "gen_ai", "question": "What uses of generative AI tools count as academic misconduct?"}
+{"id": "lq06", "domain": "in", "topic": "grade_review", "question": "Within how many days of result announcement must a grade appeal reach the exam office?"}
+{"id": "lq07", "domain": "in", "topic": "course_withdrawal", "question": "What is the last date to withdraw from a regular semester course under 2026 rules?"}
+{"id": "lq08", "domain": "in", "topic": "summer_withdrawal", "question": "When is the final day to withdraw from a summer semester course?"}
+{"id": "lq09", "domain": "in", "topic": "credit_transfer", "question": "What grade and time window are required to transfer university credits?"}
+{"id": "lq10", "domain": "in", "topic": "summer_duration", "question": "How many weeks does the summer semester last?"}
+{"id": "lq11", "domain": "in", "topic": "computer_lab", "question": "What are the lab rules on proper seating and bringing food?"}
+{"id": "lq12", "domain": "in", "topic": "tuition_fee", "question": "How much does one credit hour cost in tuition starting Fall 2026?"}
+{"id": "lq13", "domain": "in", "topic": "admission_fee", "question": "What is the non-refundable admission fee at enrollment?"}
+{"id": "lq14", "domain": "in", "topic": "misc_fees", "question": "How much is the campus transfer fee and extra transcript fee?"}
+{"id": "lq15", "domain": "in", "topic": "grading_points", "question": "How many GPA points does an A- grade carry in BS programs?"}
+{"id": "lq16", "domain": "in", "topic": "old_withdrawal_2023", "question": "Under the August 2023 rules, what was the course withdrawal deadline?"}
+{"id": "lq17", "domain": "in", "topic": "startup_duration", "question": "What is the maximum duration for a Faculty Entrepreneurship startup agreement?"}
+{"id": "lq18", "domain": "in", "topic": "oric_deliverables", "question": "How frequently do faculty founders report deliverables to ORIC?"}
+{"id": "lq19", "domain": "in", "topic": "it_mfa", "question": "Where is multi-factor authentication mandatory and how do I reset a lost MFA device?"}
+{"id": "lq20", "domain": "in", "topic": "it_password", "question": "What characters are required in university IT passwords and how often do they expire?"}
+{"id": "lq21", "domain": "in", "topic": "sports_gym", "question": "What are the gymnasium peak hours and machine time limit?"}
+{"id": "lq22", "domain": "in", "topic": "sports_grounds", "question": "How far ahead must a student society book the football ground or tennis courts?"}
+{"id": "lq23", "domain": "in", "topic": "fee_refund_tiers", "question": "What percentage of tuition is refunded when withdrawing within four weeks or between five and eight weeks?"}
+{"id": "lq24", "domain": "in", "topic": "fee_refund_cancel", "question": "Within how many working days are fees refunded if the university cancels a course?"}
+{"id": "lq25", "domain": "in", "topic": "library_postgrad", "question": "How many books can a postgraduate student borrow and for how many days?"}
+{"id": "lq26", "domain": "in", "topic": "student_complaints", "question": "How many days does the Student Services Office have to acknowledge and decide a written complaint?"}
+{"id": "lq27", "domain": "in", "topic": "clinic_hours", "question": "What are the opening hours of the university health clinic and where is Student Services located?"}
+{"id": "lq28", "domain": "in", "topic": "exam_calculator", "question": "What items like silent calculators are allowed on the desk during an examination?"}
+{"id": "lq29", "domain": "out", "topic": "hostel_pets", "question": "Are students allowed to keep pet dogs or cats in hostel dormitories?"}
+{"id": "lq30", "domain": "out", "topic": "marine_biology", "question": "Does the university offer an undergraduate degree in marine biology?"}
+{"id": "lq31", "domain": "out", "topic": "parking_permit", "question": "What is the monthly parking permit fee for motorcycles in Islamabad campus?"}
+{"id": "lq32", "domain": "out", "topic": "shuttle_bus", "question": "What time does the morning university shuttle bus leave from Saddar?"}
+{"id": "lq33", "domain": "out", "topic": "cafeteria_menu", "question": "What is the price of chicken biryani on Tuesday in the student cafeteria?"}
+{"id": "lq34", "domain": "out", "topic": "swimming_pool", "question": "What is the dress code for the campus indoor swimming pool?"}
+{"id": "lq35", "domain": "out", "topic": "wifi_guest", "question": "How long are guest Wi-Fi visitor vouchers valid on campus?"}
+{"id": "lq36", "domain": "out", "topic": "gown_rental", "question": "How much is the rental deposit for convocation graduation gowns?"}
+{"id": "lq37", "domain": "out", "topic": "dorm_curfew", "question": "What is the weekday hostel gate curfew time for boys and girls hostels?"}
+{"id": "lq38", "domain": "out", "topic": "coffee_shop", "question": "Does the library coffee shop stay open past midnight during finals?"}
+{"id": "lq39", "domain": "out", "topic": "alumni_gym", "question": "Can graduated alumni pay a monthly fee to keep using the sports gym?"}
+{"id": "lq40", "domain": "out", "topic": "solar_discount", "question": "Does the university offer an electric scooter charging discount on campus?"}

@@ -23,4 +23,9 @@ data:
   CORPUS_DIR: "/corpus"
   CHUNK_SIZE: "400"
   CHUNK_OVERLAP: "50"
+  # A3 data management and observability
+  DATA_DIR: "/data"
+  TRACE_PATH: "/data/traces/trace.jsonl"
+  EMBED_VERSION: "v1"
+  NEAR_DUP_THRESHOLD: "0.92"
   LOG_LEVEL: "INFO"

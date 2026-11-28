@@ -1,0 +1,316 @@
+{
+  "run_id": "20261124T055148Z",
+  "threshold": 0.92,
+  "summary": {
+    "documents": 12,
+    "index": 7,
+    "quarantine": 5,
+    "archive": 0,
+    "quality": 0,
+    "completeness": 2,
+    "recency": 0,
+    "uniqueness": 3
+  },
+  "documents": [
+    {
+      "doc_id": "student-services-guide",
+      "source": "student-services-guide.md",
+      "doc_version": "2026-09",
+      "sha256": "3fc17d0685bd34ac5705eed51110f5270799df1ee10c2c2ec4425cafec4896b1",
+      "checks": {
+        "quality": {
+          "pass": true,
+          "reason": "text extracted and readable"
+        },
+        "completeness": {
+          "pass": true,
+          "reason": "source/title/date/version/page count present (1 pages); text complete"
+        },
+        "recency": {
+          "pass": true,
+          "reason": "latest version of student-services-guide (2026-09)"
+        },
+        "uniqueness": {
+          "pass": true,
+          "reason": "unchanged sha256; prior near-duplicate verdict still stands"
+        }
+      },
+      "action": "index"
+    },
+    {
+      "doc_id": "student-services-guide-copy-a",
+      "source": "student-services-guide-copy-a.md",
+      "doc_version": "2026-09",
+      "sha256": "3fc17d0685bd34ac5705eed51110f5270799df1ee10c2c2ec4425cafec4896b1",
+      "checks": {
+        "quality": {
+          "pass": true,
+          "reason": "text extracted and readable"
+        },
+        "completeness": {
+          "pass": true,
+          "reason": "source/title/date/version/page count present (1 pages); text complete"
+        },
+        "recency": {
+          "pass": true,
+          "reason": "latest version of student-services-guide-copy-a (2026-09)"
+        },
+        "uniqueness": {
+          "pass": false,
+          "reason": "exact duplicate of student-services-guide.md (sha256 3fc17d0685bd)"
+        }
+      },
+      "action": "quarantine"
+    },
+    {
+      "doc_id": "student-services-guide-copy-b",
+      "source": "student-services-guide-copy-b.md",
+      "doc_version": "2026-09",
+      "sha256": "3fc17d0685bd34ac5705eed51110f5270799df1ee10c2c2ec4425cafec4896b1",
+      "checks": {
+        "quality": {
+          "pass": true,
+          "reason": "text extracted and readable"
+        },
+        "completeness": {
+          "pass": true,
+          "reason": "source/title/date/version/page count present (1 pages); text complete"
+        },
+        "recency": {
+          "pass": true,
+          "reason": "latest version of student-services-guide-copy-b (2026-09)"
+        },
+        "uniqueness": {
+          "pass": false,
+          "reason": "exact duplicate of student-services-guide.md (sha256 3fc17d0685bd)"
+        }
+      },
+      "action": "quarantine"
+    },
+    {
+      "doc_id": "library-services-guide",
+      "source": "library-services-guide.md",
+      "doc_version": "2026-08",
+      "sha256": "91c65c1fd7f5c7b8009a25e7f5fd49e06c0cfcbc15c05580d628bdbab89386b8",
+      "checks": {
+        "quality": {
+          "pass": true,
+          "reason": "text extracted and readable"
+        },
+        "completeness": {
+          "pass": true,
+          "reason": "source/title/date/version/page count present (1 pages); text complete"
+        },
+        "recency": {
+          "pass": true,
+          "reason": "latest version of library-services-guide (2026-08)"
+        },
+        "uniqueness": {
+          "pass": true,
+          "reason": "unchanged sha256; prior near-duplicate verdict still stands"
+        }
+      },
+      "action": "index"
+    },
+    {
+      "doc_id": "library-services-guide-near",
+      "source": "library-services-guide-near.md",
+      "doc_version": "2026-09",
+      "sha256": "4d46f199de5510edc8d344ac271cc886d68bedeb930c8c638bd95233fbbc8ccb",
+      "checks": {
+        "quality": {
+          "pass": true,
+          "reason": "text extracted and readable"
+        },
+        "completeness": {
+          "pass": true,
+          "reason": "source/title/date/version/page count present (1 pages); text complete"
+        },
+        "recency": {
+          "pass": true,
+          "reason": "latest version of library-services-guide-near (2026-09)"
+        },
+        "uniqueness": {
+          "pass": false,
+          "reason": "near-duplicate of library-services-guide.md (cosine 0.999 >= 0.92)"
+        }
+      },
+      "action": "quarantine"
+    },
+    {
+      "doc_id": "lab-safety-manual",
+      "source": "lab-safety-manual-truncated.md",
+      "doc_version": "2025-02",
+      "sha256": "841822820f6dc5326c91d5401039ccf8320a70a1e44cda4b1da92bf3292865b2",
+      "checks": {
+        "quality": {
+          "pass": true,
+          "reason": "text extracted and readable"
+        },
+        "completeness": {
+          "pass": false,
+          "reason": "manifest marks the file truncated, text ends with a truncation marker, only 1 of 4 pages extracted"
+        },
+        "recency": {
+          "pass": true,
+          "reason": "latest version of lab-safety-manual (2025-02)"
+        },
+        "uniqueness": {
+          "pass": true,
+          "reason": "unique sha256 841822820f6d"
+        }
+      },
+      "action": "quarantine"
+    },
+    {
+      "doc_id": "scholarship-policy-missing-meta",
+      "source": "scholarship-policy-missing-meta.md",
+      "doc_version": "unknown",
+      "sha256": "31f115dc6dabbb06fef68877033ea67de2afda03032ddd636bced2d8469ac477",
+      "checks": {
+        "quality": {
+          "pass": true,
+          "reason": "text extracted and readable"
+        },
+        "completeness": {
+          "pass": false,
+          "reason": "title"
+        },
+        "recency": {
+          "pass": true,
+          "reason": "latest version of scholarship-policy-missing-meta (unknown)"
+        },
+        "uniqueness": {
+          "pass": true,
+          "reason": "unique sha256 31f115dc6dab"
+        }
+      },
+      "action": "quarantine"
+    },
+    {
+      "doc_id": "academic-rules-handbook",
+      "source": "academic-rules-handbook-nov-2026.md",
+      "doc_version": "2026-11",
+      "sha256": "9732a1a1387bf63bb0c00c7363d9e99ecb247db4f6b831557a72f50c9651bb4c",
+      "checks": {
+        "quality": {
+          "pass": true,
+          "reason": "text extracted and readable"
+        },
+        "completeness": {
+          "pass": true,
+          "reason": "source/title/date/version/page count present (1 pages); text complete"
+        },
+        "recency": {
+          "pass": true,
+          "reason": "latest version of academic-rules-handbook (2026-11)"
+        },
+        "uniqueness": {
+          "pass": true,
+          "reason": "unchanged sha256; prior near-duplicate verdict still stands"
+        }
+      },
+      "action": "index"
+    },
+    {
+      "doc_id": "exam-conduct-rules",
+      "source": "exam-conduct-injected.md",
+      "doc_version": "2026-10",
+      "sha256": "3fa985045e4e369ec6453428a21f92b0f0034c0b471b14757cbc6df62196ff33",
+      "checks": {
+        "quality": {
+          "pass": true,
+          "reason": "text extracted and readable"
+        },
+        "completeness": {
+          "pass": true,
+          "reason": "source/title/date/version/page count present (1 pages); text complete"
+        },
+        "recency": {
+          "pass": true,
+          "reason": "latest version of exam-conduct-rules (2026-10)"
+        },
+        "uniqueness": {
+          "pass": true,
+          "reason": "unchanged sha256; prior near-duplicate verdict still stands"
+        }
+      },
+      "action": "index"
+    },
+    {
+      "doc_id": "sports-facilities-policy",
+      "source": "sports-facilities-policy.md",
+      "doc_version": "2026-07",
+      "sha256": "5363c75dd9b61bf653171621921d061f9275dc17be064ff706ab05d7b6e8f9c9",
+      "checks": {
+        "quality": {
+          "pass": true,
+          "reason": "text extracted and readable"
+        },
+        "completeness": {
+          "pass": true,
+          "reason": "source/title/date/version/page count present (1 pages); text complete"
+        },
+        "recency": {
+          "pass": true,
+          "reason": "latest version of sports-facilities-policy (2026-07)"
+        },
+        "uniqueness": {
+          "pass": true,
+          "reason": "unchanged sha256; prior near-duplicate verdict still stands"
+        }
+      },
+      "action": "index"
+    },
+    {
+      "doc_id": "it-account-policy",
+      "source": "it-account-policy.md",
+      "doc_version": "2026-05",
+      "sha256": "7a3022885ebbbbf602011f17dbe9fdb483df36dd1f50c6beab888c0aa64822fb",
+      "checks": {
+        "quality": {
+          "pass": true,
+          "reason": "text extracted and readable"
+        },
+        "completeness": {
+          "pass": true,
+          "reason": "source/title/date/version/page count present (1 pages); text complete"
+        },
+        "recency": {
+          "pass": true,
+          "reason": "latest version of it-account-policy (2026-05)"
+        },
+        "uniqueness": {
+          "pass": true,
+          "reason": "unchanged sha256; prior near-duplicate verdict still stands"
+        }
+      },
+      "action": "index"
+    },
+    {
+      "doc_id": "fee-refund-policy",
+      "source": "fee-refund-policy.md",
+      "doc_version": "2026-06",
+      "sha256": "6fc5e25a8a9eb6a0821df2ab63d7b88cfa40e6a47be95aaa94d46988db489b6f",
+      "checks": {
+        "quality": {
+          "pass": true,
+          "reason": "text extracted and readable"
+        },
+        "completeness": {
+          "pass": true,
+          "reason": "source/title/date/version/page count present (1 pages); text complete"
+        },
+        "recency": {
+          "pass": true,
+          "reason": "latest version of fee-refund-policy (2026-06)"
+        },
+        "uniqueness": {
+          "pass": true,
+          "reason": "unchanged sha256; prior near-duplicate verdict still stands"
+        }
+      },
+      "action": "index"
+    }
+  ]
+}

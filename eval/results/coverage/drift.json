@@ -1,0 +1,24 @@
+{
+  "batch_a": {
+    "collection": "rahbar",
+    "recall@5": 0.9474,
+    "mrr": 0.7675,
+    "ndcg@5": 0.8134,
+    "live_in_domain_mean_top1_similarity": 0.7216,
+    "live_in_domain_above_floor_065": "24/28"
+  },
+  "batch_b": {
+    "collection": "rahbar-batch-b",
+    "recall@5": 0.0,
+    "mrr": 0.0,
+    "ndcg@5": 0.0,
+    "live_in_domain_mean_top1_similarity": 0.7385,
+    "live_in_domain_above_floor_065": "18/28"
+  },
+  "delta": {
+    "recall@5": -0.9474,
+    "mrr": -0.7675,
+    "live_mean_top1_similarity": 0.0169
+  },
+  "cause": "Batch B replaced academic-rules-handbook-jun-2026.pdf with nov-2026.md (changing withdrawal deadline and appeal days) and introduced 6 new student-service/IT/sports/refund policies while omitting Batch A fee-structure and grading HTML pages, causing concept & corpus distribution drift."
+}

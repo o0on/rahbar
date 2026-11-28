@@ -49,7 +49,7 @@ def clean(doc: Document) -> Document:
         for page in doc.pages
     ]
     return Document(source=doc.source, doc_version=doc.doc_version,
-                    superseded=doc.superseded, pages=pages)
+                    superseded=doc.superseded, pages=pages, doc_id=doc.doc_id)
 
 
 def _normalise(line: str) -> str:

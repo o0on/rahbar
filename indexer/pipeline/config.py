@@ -18,6 +18,8 @@ class IndexerSettings:
     ollama_url: str
     redis_host: str         # the semantic cache the Job invalidates after indexing
     redis_port: int
+    data_dir: str = "/data"          # A3: PVC holding lake/, quarantine/, archive/, verify/
+    near_dup_threshold: float = 0.92  # A3: cosine similarity that counts as a near-duplicate
 
 
 def _port(val: str | int | None, default: int) -> int:
@@ -42,4 +44,6 @@ def get_settings() -> IndexerSettings:
         ollama_url=os.environ.get("OLLAMA_URL", "http://host.minikube.internal:11434"),
         redis_host=os.environ.get("REDIS_HOST", "redis"),
         redis_port=_port(os.environ.get("REDIS_PORT"), 6379),
+        data_dir=os.environ.get("DATA_DIR", "/data"),
+        near_dup_threshold=float(os.environ.get("NEAR_DUP_THRESHOLD", "0.92")),
     )

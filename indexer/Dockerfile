@@ -41,16 +41,21 @@ RUN groupadd -g 10002 indexeruser && \
 
 COPY indexer/pipeline/ ./pipeline/
 
-# The corpus reaches the Job baked into this image. corpus/raw is gitignored,
-# so fetch whatever this machine is missing; FETCH_CORPUS=0 skips the download
-# entirely (CI passes it: a build must not depend on a third-party site, and CI
-# indexes eval/fixtures from a ConfigMap mounted at /corpus instead). The fetch
-# is guarded so a site outage warns rather than failing the build - the Job
-# then exits loudly with "no documents found in /corpus" at deploy time.
+# The corpora reach the Job baked into this image: Batch A from corpus/raw at
+# /corpus, Batch B from corpus/batch_b at /corpus/batch_b (plus the doc-id
+# aliases at /corpus/a3-doc-ids.json). corpus/raw is gitignored, so fetch
+# whatever this machine is missing; FETCH_CORPUS=0 skips the download entirely
+# (CI passes it: a build must not depend on a third-party site, and CI indexes
+# eval/fixtures from a ConfigMap mounted at /corpus instead). The fetch is
+# guarded so a site outage warns rather than failing the build - the Job then
+# exits loudly with "no documents found in /corpus" at deploy time.
 ARG FETCH_CORPUS=1
 COPY corpus/ ./corpus/
 RUN if [ "$FETCH_CORPUS" = "1" ]; then python corpus/fetch.py || echo "WARN: corpus fetch failed; image ships without raw documents"; fi; \
-    mkdir -p /corpus && cp -r corpus/raw/. /corpus/ 2>/dev/null || true; \
+    mkdir -p /corpus/batch_b; \
+    cp -r corpus/raw/. /corpus/ 2>/dev/null || true; \
+    cp -r corpus/batch_b/. /corpus/batch_b/ 2>/dev/null || true; \
+    cp corpus/a3-doc-ids.json /corpus/ 2>/dev/null || true; \
     rm -rf corpus/raw; \
     chown -R indexeruser:indexeruser /corpus
 
